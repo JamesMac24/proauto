@@ -40,7 +40,7 @@ jobs:
           FECHA=$(TZ=America/Lima date +%F)
           ARCHIVO="respaldos/proauto-${FECHA}.sql.gz"
 
-          pg_dump "$SUPABASE_DB_URL" \
+            /usr/lib/postgresql/17/bin/pg_dump "$SUPABASE_DB_URL" \
             --schema=public \
             --no-owner \
             --no-privileges \
