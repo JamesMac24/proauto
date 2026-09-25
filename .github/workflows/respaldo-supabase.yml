@@ -1,0 +1,73 @@
+name: Respaldo diario de la base PROAUTO
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar pg_dump version 17
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates gnupg
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          pg_dump --version
+
+      - name: Generar el volcado de la base
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "Falta el secreto SUPABASE_DB_URL en el repositorio."
+            exit 1
+          fi
+          mkdir -p respaldos
+          FECHA=$(TZ=America/Lima date +%F)
+          ARCHIVO="respaldos/proauto-${FECHA}.sql.gz"
+
+          pg_dump "$SUPABASE_DB_URL" \
+            --schema=public \
+            --no-owner \
+            --no-privileges \
+            --clean \
+            --if-exists \
+            --quote-all-identifiers \
+            | gzip -9 > "$ARCHIVO"
+
+          PESO=$(stat -c%s "$ARCHIVO")
+          echo "Respaldo generado: $ARCHIVO ($PESO bytes)"
+          if [ "$PESO" -lt 200 ]; then
+            echo "El respaldo es demasiado pequeno. Se aborta."
+            exit 1
+          fi
+
+      - name: Borrar respaldos de mas de 90 dias
+        run: |
+          find respaldos -name "proauto-*.sql.gz" -type f -mtime +90 -delete || true
+
+      - name: Guardar el respaldo en el repositorio
+        run: |
+          git config user.name "Respaldo automatico PROAUTO"
+          git config user.email "actions@github.com"
+          git add respaldos
+          if git diff --staged --quiet; then
+            echo "Sin cambios que guardar."
+          else
+            git commit -m "Respaldo de la base $(TZ=America/Lima date +%F)"
+            git push
+          fi
