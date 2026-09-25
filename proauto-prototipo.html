@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROAUTO — Sistema de Gestión</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#F26522; --orange-dark:#D9541A;
+    --red:#DC1F26;
+    --black:#0A0A0A; --ink:#111827; --muted:#6B7280;
+    --canvas:#F7F8FA; --border:#E5E7EB; --soft:#F3F4F6;
+    --green:#059669; --amber:#B45309;
+  }
+  *{font-family:'Inter',sans-serif}
+  [x-cloak]{display:none!important}
+  body{background:var(--canvas);color:var(--ink)}
+  .btn-primary{background:var(--orange);color:#fff;transition:.15s}
+  .btn-primary:hover{background:var(--orange-dark)}
+  .btn-danger{background:var(--red);color:#fff;transition:.15s}
+  .btn-danger:hover{background:#B01820}
+  .btn-dark{background:var(--black);color:#fff;transition:.15s}
+  .btn-dark:hover{background:#232323}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--border);transition:.15s}
+  .btn-ghost:hover{background:var(--soft)}
+  .txt-orange{color:var(--orange)} .txt-red{color:var(--red)}
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px}
+  .ring-o:focus{outline:none;box-shadow:0 0 0 3px rgba(242,101,34,.18);border-color:var(--orange)}
+  .lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .inp{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;background:#fff}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-weight:600;font-size:11px;background:var(--soft);color:#374151;border:1px solid var(--border)}
+  .dot{width:7px;height:7px;border-radius:99px;display:inline-block}
+  .fade-in{animation:fade .18s ease-out}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+  @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(220,31,38,.4)}70%{box-shadow:0 0 0 10px rgba(220,31,38,0)}100%{box-shadow:0 0 0 0 rgba(220,31,38,0)}}
+  .pulse{animation:pulse-ring 1.6s infinite}
+  .navgroup{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#525252;padding:14px 12px 5px}
+  .navlink{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;color:#9CA3AF;cursor:pointer;border-left:3px solid transparent}
+  .navlink svg{width:16px;height:16px;flex-shrink:0}
+  .navlink:hover{background:#1A1A1A;color:#fff}
+  .navlink.active{background:#1A1A1A;color:#fff;border-left-color:var(--orange)}
+  .th{padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+  .td{padding:11px 14px;font-size:13.5px}
+  .mobile-frame{width:340px;height:690px;border-radius:36px;background:var(--black);padding:11px;box-shadow:0 30px 60px -20px rgba(0,0,0,.45)}
+  .mobile-screen{width:100%;height:100%;background:var(--canvas);border-radius:26px;overflow:hidden;display:flex;flex-direction:column}
+  .scroll::-webkit-scrollbar{width:6px;height:6px}
+  .scroll::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:3px}
+  .pinkey{width:64px;height:56px;border-radius:12px;background:#fff;border:1px solid var(--border);font-size:20px;font-weight:700;transition:.1s}
+  .pinkey:active{background:var(--soft);transform:scale(.96)}
+  .pindot{width:14px;height:14px;border-radius:99px;border:2px solid #9CA3AF}
+  .pindot.full{background:var(--orange);border-color:var(--orange)}
+  .tab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted)}
+  .tab.active{background:var(--black);color:#fff}
+  .mtab{flex:1;text-align:center;font-size:10px;padding:6px 0;color:#9CA3AF;cursor:pointer;font-weight:600}
+  .mtab.active{color:var(--orange);font-weight:800}
+  .bubble{max-width:78%;border-radius:14px;padding:8px 11px;font-size:12.5px;line-height:1.4}
+  .shine-wrap{position:relative;overflow:hidden;border-radius:14px}
+  .shine-wrap::after{content:'';position:absolute;top:0;bottom:0;width:70px;left:-90px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent);animation:sweep 2.8s ease-in-out infinite}
+  @keyframes sweep{0%{left:-90px}55%{left:110%}100%{left:110%}}
+  .marquee{display:flex;gap:52px;white-space:nowrap;width:max-content;animation:scrollx 34s linear infinite;align-items:flex-end}
+  .brand{display:flex;flex-direction:column;align-items:center;gap:5px}
+  @keyframes scrollx{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .floaty{animation:floaty 4s ease-in-out infinite}
+</style>
+</head>
+<body x-data="app()" x-cloak>
+
+<template id="logo-dark">
+  <svg viewBox="0 0 300 84" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" stroke-linecap="round">
+      <path d="M14,44 L30,36 Q40,30 58,28 L74,26" stroke="#fff" stroke-width="4"/>
+      <path d="M74,26 Q110,10 152,9 Q196,9 226,20 Q252,28 272,40" stroke="#fff" stroke-width="4"/>
+      <path d="M96,24 Q126,12 156,12 Q186,13 208,22 L196,26 Q162,18 128,20 Z" stroke="none" fill="#F26522"/>
+      <path d="M230,34 Q248,36 264,42" stroke="#fff" stroke-width="3"/>
+      <path d="M40,44 Q56,38 72,40" stroke="#fff" stroke-width="3"/>
+    </g>
+    <text x="18" y="76" font-family="Inter" font-weight="900" font-style="italic" font-size="34" fill="#FFFFFF" letter-spacing="1">PRO</text>
+    <text x="106" y="76" font-family="Inter" font-weight="900" font-style="italic" font-size="34" fill="#DC1F26" letter-spacing="1">AUTO</text>
+  </svg>
+</template>
+
+<!-- ============ LOGIN ============ -->
+<div x-show="view==='login'" class="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" style="background:radial-gradient(ellipse at 50% 30%,#1E1E1E,#0A0A0A 70%)">
+  <div class="w-full max-w-lg">
+    <div x-show="started" class="text-center mb-7">
+      <div class="mx-auto" style="width:220px;height:64px" x-html="logo()"></div>
+      <p class="text-neutral-500 text-xs mt-2 italic" x-text="'“'+fraseDia()+'”'"></p>
+    </div>
+
+    <!-- Portada -->
+    <div x-show="!started" class="text-center fade-in">
+      <div class="shine-wrap floaty mx-auto" style="width:330px;height:94px"><div x-html="logo()" style="width:100%;height:100%"></div></div>
+      <div class="w-14 h-0.5 mx-auto mt-5" style="background:var(--orange)"></div>
+      <div class="text-[10px] font-bold tracking-[.4em] text-neutral-500 mt-3">TORNERÍA · MECÁNICA · REPUESTOS</div>
+      <button @click="started=true" class="btn-primary rounded-xl px-16 py-4 text-sm font-black tracking-[.25em] mt-10" style="box-shadow:0 12px 45px -8px rgba(242,101,34,.55)">INGRESAR</button>
+    </div>
+
+    <!-- Marcas desfilando -->
+    <div x-show="!started" class="absolute bottom-7 left-0 right-0 overflow-hidden select-none pointer-events-none" style="opacity:.35">
+      <div class="marquee">
+        <template x-for="(b,i) in [...marcasPortada,...marcasPortada]" :key="i">
+          <div class="brand">
+            <span x-html="b.svg"></span>
+            <span class="text-[9px] font-black italic tracking-[.22em] text-neutral-500" x-text="b.n"></span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Selección de usuario -->
+    <div x-show="started && !sel" class="bg-white rounded-2xl p-6 shadow-2xl fade-in">
+      <div class="flex items-center justify-between mb-3">
+        <p class="lbl">Seleccione su usuario</p>
+        <button @click="started=false" class="text-[11px] text-gray-400 hover:text-gray-600">← Volver</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <template x-for="p in personas" :key="p.id">
+          <button @click="sel=p;pin='';dispositivo=null" class="btn-ghost rounded-xl p-3.5 text-left flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0" :style="'background:'+(p.rol==='admin'?'var(--black)':'var(--orange)')" x-text="p.ini"></div>
+            <div>
+              <div class="font-bold text-[13px]" x-text="p.nombre"></div>
+              <div class="text-[11px] text-gray-500" x-text="p.cargo"></div>
+            </div>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <div x-show="sel" class="bg-white rounded-2xl p-6 shadow-2xl fade-in max-w-sm mx-auto">
+      <div class="text-center mb-4">
+        <div class="w-14 h-14 rounded-full mx-auto flex items-center justify-center font-bold text-white text-lg" :style="'background:'+(sel?.rol==='admin'?'var(--black)':'var(--orange)')" x-text="sel?.ini"></div>
+        <div class="font-bold mt-2" x-text="sel?.nombre"></div>
+        <div class="text-xs text-gray-500">Ingrese su PIN de seguridad <span class="text-gray-400">(demo: cualquiera)</span></div>
+      </div>
+      <div class="flex justify-center gap-3 mb-5">
+        <template x-for="i in 4"><div class="pindot" :class="pin.length>=i&&'full'"></div></template>
+      </div>
+      <div class="grid grid-cols-3 gap-2 justify-items-center">
+        <template x-for="n in [1,2,3,4,5,6,7,8,9]" :key="n"><button @click="pinPress(n)" class="pinkey" x-text="n"></button></template>
+        <button @click="sel=null" class="pinkey text-xs text-gray-500">←</button>
+        <button @click="pinPress(0)" class="pinkey">0</button>
+        <button @click="pin=pin.slice(0,-1)" class="pinkey text-sm">⌫</button>
+      </div>
+    </div>
+
+    <!-- Selector de dispositivo para roles con doble acceso -->
+    <div x-show="dispositivo==='elegir'" class="bg-white rounded-2xl p-6 shadow-2xl fade-in max-w-sm mx-auto mt-4">
+      <p class="font-bold text-sm text-center mb-4">Seleccione su estación de trabajo</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button @click="entrarWeb()" class="btn-dark rounded-xl p-4 text-center"><div class="text-2xl mb-1">🖥️</div><div class="text-xs font-bold">Escritorio</div></button>
+        <button @click="entrarMovil()" class="btn-ghost rounded-xl p-4 text-center"><div class="text-2xl mb-1">📱</div><div class="text-xs font-bold">Móvil</div></button>
+      </div>
+    </div>
+    <p class="text-center text-gray-600 text-xs mt-6">PROAUTO © 2026 · Precisión y confianza en cada trabajo</p>
+  </div>
+</div>
+
+<!-- ============ APP WEB ============ -->
+<div x-show="view==='web'" class="min-h-screen flex">
+  <aside class="w-60 flex flex-col" style="background:var(--black);min-height:100vh">
+    <div class="p-5 border-b border-neutral-800"><div style="width:160px;height:46px" x-html="logo()"></div></div>
+    <div class="px-4 py-3 border-b border-neutral-800 text-sm">
+      <div class="text-white font-semibold" x-text="user?.nombre"></div>
+      <div class="text-xs text-neutral-500" x-text="user?.cargo+' · '+hoy()"></div>
+    </div>
+    <nav class="flex-1 py-1 px-3 overflow-auto scroll">
+      <div class="navgroup">Operación diaria</div>
+      <div @click="page='dashboard'" :class="page==='dashboard'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Panel del día
+      </div>
+      <div @click="page='ot'" :class="page==='ot'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4L15 12l-3-3z"/></svg>
+        Órdenes de trabajo
+        <span x-show="porCobrar().length" class="ml-auto text-[10px] font-bold text-white rounded-full px-1.5 pulse" style="background:var(--red)" x-text="porCobrar().length"></span>
+      </div>
+      <div @click="page='kanban'" :class="page==='kanban'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="5" height="13" rx="1"/></svg>
+        Tablero de trabajos
+      </div>
+      <div @click="page='caja'" :class="page==='caja'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+        Caja del día
+      </div>
+      <div class="navgroup">Registros</div>
+      <div @click="page='atenciones'" :class="page==='atenciones'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+        Atenciones (BD)
+      </div>
+      <div @click="page='reporte'" :class="page==='reporte'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg>
+        Reporte diario
+      </div>
+      <div @click="page='inventario'" :class="page==='inventario'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>
+        Inventario
+      </div>
+      <div @click="page='clientes'" :class="page==='clientes'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M17 4a3.5 3.5 0 0 1 0 7M22 20c0-2.8-1.9-5-4.5-5.7"/></svg>
+        Clientes
+      </div>
+      <div class="navgroup">Equipo</div>
+      <div @click="page='chat'" :class="page==='chat'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2.5-2.5A8 8 0 1 1 21 12z"/></svg>
+        Chat del equipo
+      </div>
+      <div @click="page='asistencia'" :class="page==='asistencia'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 11a2 2 0 0 1 2 2v2a2 2 0 0 1-4 0v-2a2 2 0 0 1 2-2z"/><path d="M6 12v-1a6 6 0 0 1 12 0v1M9 21a9 9 0 0 1-3-4M15 21a9 9 0 0 0 3-4"/></svg>
+        Control de asistencia
+      </div>
+      <div @click="page='tareas'" :class="page==='tareas'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 15l2.5 2.5L15 13"/></svg>
+        Cronograma de tareas
+      </div>
+      <div @click="page='reglamento'" :class="page==='reglamento'&&'active'" class="navlink">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        Reglamento y funciones
+      </div>
+      <div class="navgroup">Administración</div>
+      <template x-if="user?.rol==='admin'">
+        <div @click="page='pagos'" :class="page==='pagos'&&'active'" class="navlink">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v2M12 12v4M10 14h4"/></svg>
+          Pagos al personal
+        </div>
+      </template>
+      <template x-if="user?.rol==='admin'">
+        <div @click="page='finanzas'" :class="page==='finanzas'&&'active'" class="navlink">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 6-6"/></svg>
+          Finanzas y ratios
+        </div>
+      </template>
+      <div @click="page='cierre'" :class="page==='cierre'&&'active'" class="navlink" style="color:#FCA5A5">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Cierre de caja
+      </div>
+    </nav>
+    <div class="p-3 border-t border-neutral-800 space-y-1">
+      <template x-if="user?.rol==='admin'">
+        <button @click="view='movil';movilRole='dueno';movilTab='ordenes'" class="w-full text-neutral-400 hover:text-white text-xs py-1.5 text-left px-2">Ver como app móvil</button>
+      </template>
+      <template x-if="user?.rol==='admin'">
+        <button @click="backup()" class="w-full text-neutral-400 hover:text-white text-xs py-1.5 text-left px-2">⬇ Descargar respaldo (.json)</button>
+      </template>
+      <template x-if="user?.rol==='admin'">
+        <button @click="resetDatos()" class="w-full text-neutral-600 hover:text-red-400 text-xs py-1.5 text-left px-2">Borrar datos y volver al demo</button>
+      </template>
+      <button @click="logout()" class="w-full text-neutral-400 hover:text-white text-xs py-1.5 text-left px-2">Cerrar sesión</button>
+      <p class="text-[9px] text-neutral-600 px-2 pt-1">Guardado automático activo en esta PC</p>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white border-b px-6 py-3 flex items-center gap-4" style="border-color:var(--border)">
+      <input type="text" placeholder="Buscar por DNI, placa, nombre o N° de orden…  (Ctrl+B)" class="inp ring-o max-w-xl" style="background:var(--canvas)">
+      <div class="ml-auto flex items-center gap-3">
+        <button @click="openNuevaOT()" class="btn-primary rounded-lg px-4 py-2 text-sm font-semibold">+ Nueva orden (F2)</button>
+      </div>
+    </header>
+
+    <!-- BANNER: trabajos terminados por cobrar (con sonido) -->
+    <div x-show="porCobrar().length" class="px-6 py-2.5 flex items-center gap-3 text-white text-sm font-semibold" style="background:var(--red)">
+      <span class="dot pulse" style="background:#fff"></span>
+      <span x-text="porCobrar().length+' trabajo(s) finalizado(s) — pendiente(s) de cobro y entrega: '+porCobrar().map(o=>o.id).join(', ')"></span>
+      <button @click="page='caja'" class="ml-auto bg-white rounded-lg px-3 py-1 text-xs font-bold" style="color:var(--red)">Gestionar cobro</button>
+    </div>
+
+    <main class="flex-1 overflow-auto p-6 scroll">
+
+      <!-- PANEL DEL DÍA -->
+      <div x-show="page==='dashboard'" class="fade-in space-y-5">
+        <div class="flex items-end justify-between">
+          <div>
+            <h1 class="text-xl font-bold" x-text="saludo()+', '+user?.nombre.split(' ')[0]"></h1>
+            <p class="text-xs text-gray-500 italic" x-text="'“'+fraseDia()+'”'"></p>
+          </div>
+          <span class="text-xs text-gray-500" x-text="hoyLargo()"></span>
+        </div>
+        <div class="grid grid-cols-4 gap-4">
+          <div class="card p-5"><div class="lbl">Ingresos del día</div><div class="text-2xl font-bold mt-1" x-text="S(totalIngresos())"></div><div class="text-xs text-gray-500 mt-2">Torn. <b x-text="S(ingArea('Tornería'))"></b> · Mec. <b x-text="S(ingArea('Mecánica'))"></b> · Rep. <b x-text="S(ingArea('Repuestos'))"></b></div></div>
+          <div class="card p-5"><div class="lbl">Egresos del día</div><div class="text-2xl font-bold mt-1 txt-red" x-text="S(totalGastos())"></div><div class="text-xs text-gray-500 mt-2" x-text="gastos.length+' movimientos'"></div></div>
+          <div class="card p-5"><div class="lbl">Resultado del día</div><div class="text-2xl font-bold mt-1" style="color:var(--green)" x-text="S(totalIngresos()-totalGastos())"></div><div class="text-xs text-gray-500 mt-2">Ingresos − egresos</div></div>
+          <div class="card p-5"><div class="lbl">Órdenes abiertas</div><div class="text-2xl font-bold mt-1 txt-orange" x-text="ots.filter(o=>o.estado!=='ENTREGADA').length"></div><div class="text-xs text-gray-500 mt-2">En curso en taller</div></div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="card p-5 col-span-2">
+            <h3 class="font-bold text-sm mb-3">Avisos</h3>
+            <div class="space-y-2 text-sm">
+              <template x-for="ot in porCobrar()" :key="ot.id">
+                <div class="flex items-center gap-3 p-2.5 rounded-lg" style="background:#FEF2F2">
+                  <span class="dot pulse" style="background:var(--red)"></span>
+                  <span class="flex-1"><b x-text="ot.id+' terminada'"></b> — cliente debe pasar a caja (<span x-text="S(ot.monto)"></span>)</span>
+                  <button @click="verOT(ot)" class="text-xs font-semibold txt-red">Cobrar</button>
+                </div>
+              </template>
+              <div class="flex items-center gap-3 p-2.5 rounded-lg" style="background:#FFFBEB">
+                <span class="dot" style="background:var(--amber)"></span>
+                <span class="flex-1"><b>3 repuestos bajo stock mínimo</b></span>
+                <button @click="page='inventario'" class="text-xs font-semibold txt-orange">Ver</button>
+              </div>
+              <div class="flex items-center gap-3 p-2.5 rounded-lg" style="background:var(--soft)">
+                <span class="dot" style="background:var(--muted)"></span>
+                <span class="flex-1"><b>2 tardanzas hoy</b> — 19 min en total</span>
+                <button @click="page='asistencia'" class="text-xs font-semibold text-gray-600">Ver</button>
+              </div>
+            </div>
+          </div>
+          <div class="card p-5">
+            <h3 class="font-bold text-sm mb-3">Reconocimientos del mes</h3>
+            <div class="space-y-2 text-[12.5px]">
+              <div class="flex items-center gap-2 p-2 rounded-lg" style="background:#FFF7ED"><span class="font-bold txt-orange">1°</span><span class="flex-1 font-semibold">L. Ramírez</span><span class="text-gray-500">18 órdenes</span></div>
+              <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--soft)"><span class="font-bold text-gray-500">2°</span><span class="flex-1 font-semibold">C. Andrade</span><span class="text-gray-500">15 órdenes</span></div>
+              <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--soft)"><span class="font-bold text-gray-500">3°</span><span class="flex-1 font-semibold">M. Villacorta</span><span class="text-gray-500">14 órdenes</span></div>
+              <p class="text-[11px] text-gray-400 pt-1">Reconocimiento mensual al desempeño del equipo.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card overflow-hidden">
+          <div class="p-4 border-b flex justify-between items-center" style="border-color:var(--border)">
+            <h3 class="font-bold text-sm">Órdenes activas</h3>
+            <button @click="page='ot'" class="text-xs font-semibold txt-orange">Ver todas</button>
+          </div>
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Orden</th><th class="th">Cliente</th><th class="th">Vehículo / Pieza</th><th class="th">Área</th><th class="th">Estado</th><th class="th" style="text-align:right">Precio</th></tr></thead>
+            <tbody>
+              <template x-for="ot in ots.slice(0,6)" :key="ot.id">
+                <tr class="border-t hover:bg-gray-50 cursor-pointer" style="border-color:var(--border)" @click="verOT(ot)">
+                  <td class="td font-mono font-semibold" x-text="ot.id"></td>
+                  <td class="td" x-text="ot.cliente"></td>
+                  <td class="td"><span class="chip" x-show="ot.marca" x-text="ot.marca"></span> <span x-text="ot.vehiculo||ot.pieza"></span></td>
+                  <td class="td text-gray-500" x-text="ot.area"></td>
+                  <td class="td"><span class="chip"><span class="dot" :style="'background:'+eColor(ot.estado)"></span><span x-text="ot.estado"></span></span></td>
+                  <td class="td text-right font-semibold" x-text="S(ot.monto)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ÓRDENES -->
+      <div x-show="page==='ot'" class="fade-in space-y-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-xl font-bold">Órdenes de trabajo</h1>
+          <button @click="openNuevaOT()" class="btn-primary rounded-lg px-4 py-2 text-sm font-semibold">+ Nueva orden</button>
+        </div>
+        <div class="card overflow-hidden">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Orden</th><th class="th">Fecha</th><th class="th">Cliente</th><th class="th">Vehículo / Pieza</th><th class="th">Área</th><th class="th">Responsable</th><th class="th">Estado</th><th class="th" style="text-align:right">Precio</th></tr></thead>
+            <tbody>
+              <template x-for="ot in ots" :key="ot.id">
+                <tr class="border-t hover:bg-gray-50 cursor-pointer" style="border-color:var(--border)" @click="verOT(ot)">
+                  <td class="td font-mono font-semibold" x-text="ot.id"></td>
+                  <td class="td text-gray-500" x-text="ot.fecha"></td>
+                  <td class="td" x-text="ot.cliente"></td>
+                  <td class="td"><span class="chip" x-show="ot.marca" x-text="ot.marca"></span> <span x-text="ot.vehiculo||ot.pieza"></span></td>
+                  <td class="td text-gray-500" x-text="ot.area"></td>
+                  <td class="td text-gray-500" x-text="ot.maestro"></td>
+                  <td class="td"><span class="chip"><span class="dot" :style="'background:'+eColor(ot.estado)"></span><span x-text="ot.estado"></span></span></td>
+                  <td class="td text-right font-semibold" x-text="S(ot.monto)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TABLERO -->
+      <div x-show="page==='kanban'" class="fade-in">
+        <h1 class="text-xl font-bold mb-4">Tablero de trabajos</h1>
+        <div class="grid grid-cols-5 gap-3">
+          <template x-for="est in ['INGRESO','APROBADA','EN PROCESO','POR COBRAR','ENTREGADA']" :key="est">
+            <div class="card p-3" style="min-height:380px;background:var(--canvas)">
+              <div class="flex justify-between items-center mb-3 px-1">
+                <span class="text-xs font-bold flex items-center gap-2"><span class="dot" :style="'background:'+eColor(est)"></span><span x-text="est"></span></span>
+                <span class="text-xs text-gray-500" x-text="ots.filter(o=>o.estado===est).length"></span>
+              </div>
+              <div class="space-y-2">
+                <template x-for="ot in ots.filter(o=>o.estado===est)" :key="ot.id">
+                  <div @click="verOT(ot)" class="card p-3 cursor-pointer hover:shadow-md transition-shadow" :class="est==='POR COBRAR'&&'pulse'">
+                    <div class="flex justify-between mb-1"><span class="font-mono text-[11px] font-bold" x-text="ot.id"></span><span class="text-[10px] text-gray-500" x-text="ot.area"></span></div>
+                    <div class="text-[13px] font-semibold" x-text="ot.vehiculo||ot.pieza"></div>
+                    <div class="text-[11px] text-gray-500 mb-2" x-text="ot.cliente"></div>
+                    <div class="flex justify-between pt-2 border-t text-[11px]" style="border-color:var(--border)">
+                      <span class="text-gray-500" x-text="ot.maestro.split(' ')[0]"></span>
+                      <span class="font-bold" x-text="S(ot.monto)"></span>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- CAJA -->
+      <div x-show="page==='caja'" class="fade-in space-y-4">
+        <div class="flex justify-between items-center">
+          <div><h1 class="text-xl font-bold">Caja del día</h1><p class="text-xs text-gray-500">Ingresos y egresos operativos — montos en soles</p></div>
+          <div class="flex gap-2">
+            <button @click="abrirPOS()" class="btn-dark rounded-lg px-4 py-2 text-sm font-semibold">🛒 Venta repuestos (escáner)</button>
+            <button @click="modalIngreso=true" class="btn-primary rounded-lg px-4 py-2 text-sm font-semibold">+ Ingreso</button>
+            <button @click="modalGasto=true" class="btn-ghost rounded-lg px-4 py-2 text-sm font-semibold">− Egreso</button>
+          </div>
+        </div>
+
+        <!-- Trabajos por cobrar -->
+        <div x-show="porCobrar().length" class="card p-4" style="border-color:var(--red)">
+          <h3 class="font-bold text-sm mb-3 txt-red">🔔 Trabajos terminados — clientes por pasar a caja</h3>
+          <template x-for="ot in porCobrar()" :key="ot.id">
+            <div class="flex items-center gap-3 py-2 border-b text-sm" style="border-color:var(--border)">
+              <span class="font-mono font-bold" x-text="ot.id"></span>
+              <span class="flex-1" x-text="ot.cliente+' — '+(ot.vehiculo||ot.pieza)"></span>
+              <span class="font-bold" x-text="S(ot.monto)"></span>
+              <button @click="abrirCobro(ot)" class="btn-primary rounded-lg px-4 py-1.5 text-xs font-bold">Cobrar y entregar</button>
+            </div>
+          </template>
+        </div>
+
+        <!-- Mensajes al cliente pendientes de revisión -->
+        <div x-show="sugerencias.filter(s=>s.estado==='pendiente').length" class="card p-4">
+          <h3 class="font-bold text-sm mb-1">Recomendaciones al cliente — pendientes de revisión</h3>
+          <p class="text-[11px] text-gray-500 mb-3">El técnico redactó estas recomendaciones al finalizar su trabajo. Revíselas, ajústelas si es necesario y envíelas al cliente por WhatsApp.</p>
+          <template x-for="s in sugerencias.filter(x=>x.estado==='pendiente')" :key="s.id">
+            <div class="p-3 rounded-lg mb-2" style="background:var(--soft)">
+              <div class="text-[11px] text-gray-500 mb-1" x-text="s.ot+' · redactado por '+s.de"></div>
+              <textarea x-model="s.texto" class="inp ring-o text-sm" rows="2"></textarea>
+              <div class="flex gap-2 mt-2">
+                <a :href="'https://wa.me/51987654321?text='+encodeURIComponent('Hola, le escribimos de PROAUTO 🚗. '+s.texto)" target="_blank" @click="s.estado='enviada';showToast('Mensaje aprobado y abierto en WhatsApp')" class="btn-primary rounded-lg px-4 py-1.5 text-xs font-bold">Aprobar y enviar por WhatsApp</a>
+                <button @click="s.estado='descartada'" class="btn-ghost rounded-lg px-4 py-1.5 text-xs font-semibold">Descartar</button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="grid grid-cols-4 gap-3">
+          <template x-for="m in metodos" :key="m">
+            <div class="card p-4"><div class="lbl" x-text="m"></div><div class="text-xl font-bold mt-1" x-text="S(saldoMetodo(m))"></div></div>
+          </template>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="card overflow-hidden">
+            <div class="p-3 border-b font-bold text-sm" style="border-color:var(--border)">Ingresos</div>
+            <table class="w-full">
+              <thead style="background:var(--canvas)"><tr><th class="th">Descripción</th><th class="th">Área</th><th class="th">Método</th><th class="th" style="text-align:right">Cant.</th><th class="th" style="text-align:right">Total</th></tr></thead>
+              <tbody>
+                <template x-for="i in ingresos" :key="i.id">
+                  <tr class="border-t" style="border-color:var(--border)">
+                    <td class="td"><div class="font-medium" x-text="i.desc"></div><div class="text-[11px] text-gray-500" x-text="i.hora"></div></td>
+                    <td class="td text-gray-500 text-xs" x-text="i.area"></td>
+                    <td class="td text-xs"><span x-text="i.metodo"></span><span x-show="i.banco" class="text-gray-500" x-text="' · '+i.banco"></span></td>
+                    <td class="td text-right text-gray-500" x-text="i.cant"></td>
+                    <td class="td text-right font-semibold" style="color:var(--green)" x-text="'+'+S(i.total)"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <div class="card overflow-hidden">
+            <div class="p-3 border-b font-bold text-sm" style="border-color:var(--border)">Egresos</div>
+            <table class="w-full">
+              <thead style="background:var(--canvas)"><tr><th class="th">Descripción</th><th class="th">Categoría</th><th class="th">Método</th><th class="th" style="text-align:right">Total</th></tr></thead>
+              <tbody>
+                <template x-for="g in gastos" :key="g.id">
+                  <tr class="border-t" style="border-color:var(--border)">
+                    <td class="td"><div class="font-medium" x-text="g.desc"></div><div class="text-[11px] text-gray-500"><span x-text="g.hora"></span><span x-show="g.trabajador" x-text="' · '+g.trabajador"></span></div></td>
+                    <td class="td text-xs text-gray-500" x-text="g.categoria"></td>
+                    <td class="td text-xs" x-text="g.metodo"></td>
+                    <td class="td text-right font-semibold txt-red" x-text="'−'+S(g.total)"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATENCIONES -->
+      <div x-show="page==='atenciones'" class="fade-in space-y-4">
+        <div><h1 class="text-xl font-bold">Base de datos de atenciones</h1><p class="text-xs text-gray-500">Historial completo por área — todo registro desde web o móvil llega aquí automáticamente</p></div>
+        <div class="flex gap-1 card p-1 w-fit">
+          <template x-for="a in ['Mecánica','Tornería','Repuestos']" :key="a"><div @click="tabAt=a" :class="tabAt===a&&'active'" class="tab" x-text="a"></div></template>
+        </div>
+        <div class="card overflow-hidden" x-show="tabAt!=='Repuestos'">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Orden</th><th class="th">Fecha</th><th class="th">Cliente</th><th class="th">Detalle</th><th class="th">Responsable</th><th class="th">Estado</th><th class="th" style="text-align:right">Precio</th></tr></thead>
+            <tbody>
+              <template x-for="ot in ots.filter(o=>o.area===tabAt)" :key="ot.id">
+                <tr class="border-t hover:bg-gray-50 cursor-pointer" style="border-color:var(--border)" @click="verOT(ot)">
+                  <td class="td font-mono font-semibold" x-text="ot.id"></td>
+                  <td class="td text-gray-500" x-text="ot.fecha"></td>
+                  <td class="td" x-text="ot.cliente"></td>
+                  <td class="td text-gray-600 text-xs" x-text="(ot.vehiculo||ot.pieza)+' — '+ot.trabajo"></td>
+                  <td class="td text-gray-500" x-text="ot.maestro"></td>
+                  <td class="td"><span class="chip"><span class="dot" :style="'background:'+eColor(ot.estado)"></span><span x-text="ot.estado"></span></span></td>
+                  <td class="td text-right font-semibold" x-text="S(ot.monto)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <div class="card overflow-hidden" x-show="tabAt==='Repuestos'">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Fecha / Hora</th><th class="th">Descripción</th><th class="th">Método</th><th class="th" style="text-align:right">Cant.</th><th class="th" style="text-align:right">Total</th></tr></thead>
+            <tbody>
+              <template x-for="i in ingresos.filter(x=>x.area==='Repuestos')" :key="i.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td text-gray-500" x-text="'19/07 · '+i.hora"></td>
+                  <td class="td font-medium" x-text="i.desc"></td>
+                  <td class="td text-xs" x-text="i.metodo+(i.banco?' · '+i.banco:'')"></td>
+                  <td class="td text-right text-gray-500" x-text="i.cant"></td>
+                  <td class="td text-right font-semibold" x-text="S(i.total)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <button class="btn-ghost rounded-lg px-4 py-2 text-xs font-semibold">Exportar a Excel</button>
+      </div>
+
+      <!-- REPORTE DIARIO -->
+      <div x-show="page==='reporte'" class="fade-in space-y-4">
+        <div><h1 class="text-xl font-bold">Reporte diario consolidado</h1><p class="text-xs text-gray-500" x-text="hoyLargo()+' · Ingresos por área y método de pago'"></p></div>
+        <div class="card overflow-hidden">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr>
+              <th class="th">Área</th><th class="th" style="text-align:right">Efectivo</th><th class="th" style="text-align:right">Yape</th><th class="th" style="text-align:right">Plin</th><th class="th" style="text-align:right">Transferencia</th><th class="th" style="text-align:right">Total ingresos</th><th class="th" style="text-align:right">Egresos</th><th class="th" style="text-align:right">Neto</th>
+            </tr></thead>
+            <tbody>
+              <template x-for="a in ['Tornería','Mecánica','Repuestos']" :key="a">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-semibold" x-text="a"></td>
+                  <template x-for="m in metodos" :key="m"><td class="td text-right font-mono" x-text="S(ingAreaMetodo(a,m))"></td></template>
+                  <td class="td text-right font-mono font-bold" x-text="S(ingArea(a))"></td>
+                  <td class="td text-right font-mono txt-red" x-text="S(gastoArea(a))"></td>
+                  <td class="td text-right font-mono font-bold" :style="'color:'+(ingArea(a)-gastoArea(a)>=0?'var(--green)':'var(--red)')" x-text="S(ingArea(a)-gastoArea(a))"></td>
+                </tr>
+              </template>
+              <tr class="border-t" style="border-color:var(--border);background:var(--soft)">
+                <td class="td font-bold">General / caja</td><td class="td" colspan="4"></td>
+                <td class="td text-right font-mono font-bold" x-text="S(totalIngresos())"></td>
+                <td class="td text-right font-mono font-bold txt-red" x-text="S(gastoArea('General'))"></td><td class="td"></td>
+              </tr>
+              <tr class="border-t-2" style="border-color:var(--ink);background:#111827">
+                <td class="td font-bold text-white">TOTAL DEL DÍA</td>
+                <template x-for="m in metodos" :key="m"><td class="td text-right font-mono text-white" x-text="S(ingMetodo(m))"></td></template>
+                <td class="td text-right font-mono font-bold text-white" x-text="S(totalIngresos())"></td>
+                <td class="td text-right font-mono font-bold" style="color:#FCA5A5" x-text="S(totalGastos())"></td>
+                <td class="td text-right font-mono font-bold" style="color:#6EE7B7" x-text="S(totalIngresos()-totalGastos())"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="card p-4">
+            <h3 class="font-bold text-sm mb-3">Transferencias por banco</h3>
+            <template x-for="b in ['BCP','Interbank','BBVA']" :key="b">
+              <div class="flex justify-between py-2 border-b text-sm" style="border-color:var(--border)"><span x-text="b"></span><span class="font-mono font-semibold" x-text="S(ingresos.filter(i=>i.banco===b).reduce((s,i)=>s+i.total,0))"></span></div>
+            </template>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-bold text-sm mb-3">Resumen de atención</h3>
+            <div class="grid grid-cols-2 gap-3 text-center">
+              <div class="p-3 rounded-lg" style="background:var(--soft)"><div class="text-2xl font-bold" x-text="ingresos.length"></div><div class="text-xs text-gray-500">Operaciones</div></div>
+              <div class="p-3 rounded-lg" style="background:var(--soft)"><div class="text-2xl font-bold" x-text="ots.length"></div><div class="text-xs text-gray-500">Órdenes registradas</div></div>
+              <div class="p-3 rounded-lg" style="background:var(--soft)"><div class="text-2xl font-bold" x-text="S(totalIngresos()/Math.max(ingresos.length,1))"></div><div class="text-xs text-gray-500">Ticket promedio</div></div>
+              <div class="p-3 rounded-lg" style="background:var(--soft)"><div class="text-2xl font-bold" x-text="ots.filter(o=>o.estado==='ENTREGADA').length"></div><div class="text-xs text-gray-500">Entregados</div></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-dark rounded-lg px-5 py-2.5 text-sm font-semibold">Imprimir reporte del día (PDF)</button>
+      </div>
+
+      <!-- INVENTARIO -->
+      <div x-show="page==='inventario'" class="fade-in space-y-4">
+        <div class="flex justify-between items-center">
+          <div><h1 class="text-xl font-bold">Inventario de repuestos</h1><p class="text-xs text-gray-500">Toca un producto para ver su kardex · El botón ↥ registra entrada de stock</p></div>
+          <div class="flex gap-2">
+            <button @click="abrirNuevoProd()" class="btn-ghost rounded-lg px-4 py-2 text-sm font-semibold">+ Producto manual (sin código)</button>
+            <button @click="abrirPOS()" class="btn-primary rounded-lg px-4 py-2 text-sm font-semibold">🛒 Vender</button>
+          </div>
+        </div>
+        <div class="flex gap-1 card p-1 w-fit">
+          <div @click="tabInv='disponibles'" :class="tabInv==='disponibles'&&'active'" class="tab">Disponibles</div>
+          <div @click="tabInv='agotados'" :class="tabInv==='agotados'&&'active'" class="tab">
+            Agotados <span x-show="inventario.filter(p=>p.stock===0).length" class="text-[10px] font-bold text-white rounded-full px-1.5 ml-1" style="background:var(--red)" x-text="inventario.filter(p=>p.stock===0).length"></span>
+          </div>
+        </div>
+        <div class="card overflow-hidden">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Código</th><th class="th">Producto</th><th class="th">Marca</th><th class="th" style="text-align:right">Stock</th><th class="th" style="text-align:right">Precio</th><th class="th">Estado</th><th class="th"></th></tr></thead>
+            <tbody>
+              <template x-for="p in inventario.filter(x=>tabInv==='agotados'?x.stock===0:x.stock>0)" :key="p.codigo">
+                <tr class="border-t hover:bg-gray-50 cursor-pointer" style="border-color:var(--border)" @click="abrirKardex(p)">
+                  <td class="td font-mono text-xs text-gray-500" x-text="p.codigo"></td>
+                  <td class="td font-medium" x-text="p.nombre"></td>
+                  <td class="td text-gray-500" x-text="p.marca"></td>
+                  <td class="td text-right font-bold" :class="p.stock<=p.minimo&&'txt-red'" x-text="p.stock"></td>
+                  <td class="td text-right font-mono" x-text="S(p.precio)"></td>
+                  <td class="td"><span class="chip"><span class="dot" :style="'background:'+(p.stock===0?'var(--red)':p.stock<=p.minimo?'var(--red)':p.stock<=p.minimo*2?'var(--amber)':'var(--green)')"></span><span x-text="p.stock===0?'AGOTADO':p.stock<=p.minimo?'Crítico':p.stock<=p.minimo*2?'Bajo':'Normal'"></span></span></td>
+                  <td class="td"><button @click.stop="abrirEntrada(p)" class="btn-ghost rounded px-2.5 py-1 text-[11px] font-bold" title="Registrar entrada de stock">↥</button></td>
+                </tr>
+              </template>
+              <tr x-show="tabInv==='agotados'&&inventario.filter(p=>p.stock===0).length===0"><td class="td text-gray-400 text-center" colspan="7">No hay productos agotados 👍</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Lista de reposición sugerida -->
+        <div class="card p-4" x-show="reposicion().length">
+          <h3 class="font-bold text-sm mb-1">Lista de reposición sugerida</h3>
+          <p class="text-[11px] text-gray-500 mb-3">Generada automáticamente: agotados + bajo stock mínimo, con cantidad sugerida según rotación.</p>
+          <table class="w-full text-sm">
+            <thead><tr class="border-b" style="border-color:var(--border)"><th class="th" style="padding-left:0">Producto</th><th class="th" style="text-align:right">Stock actual</th><th class="th" style="text-align:right">Mínimo</th><th class="th" style="text-align:right">Comprar sugerido</th></tr></thead>
+            <tbody>
+              <template x-for="p in reposicion()" :key="p.codigo">
+                <tr class="border-b" style="border-color:var(--border)">
+                  <td class="py-2 font-medium" x-text="p.nombre"></td>
+                  <td class="py-2 text-right font-bold" :class="p.stock===0&&'txt-red'" x-text="p.stock"></td>
+                  <td class="py-2 text-right text-gray-500" x-text="p.minimo"></td>
+                  <td class="py-2 text-right font-bold txt-orange" x-text="(p.minimo*2-p.stock)+' unid.'"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <button class="btn-ghost rounded-lg px-4 py-2 text-xs font-semibold mt-3">Exportar lista de compra</button>
+        </div>
+
+        <!-- Materiales de taller (uso interno) -->
+        <div class="card overflow-hidden">
+          <div class="p-3 border-b" style="border-color:var(--border)">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-sm">Materiales de taller (uso interno)</span>
+              <div class="flex gap-1">
+                <template x-for="a in ['Todos','Tornería','Mecánica']" :key="a">
+                  <button @click="matArea=a" :class="matArea===a?'btn-dark':'btn-ghost'" class="rounded px-3 py-1 text-[11px] font-semibold" x-text="a"></button>
+                </template>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-1">Al consumir material en una orden de tornería, el costo se suma automáticamente a la orden y se descuenta del cálculo del 35% del tornero.</p>
+          </div>
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Material</th><th class="th">Área</th><th class="th" style="text-align:right">Stock</th><th class="th" style="text-align:right">Mínimo</th><th class="th" style="text-align:right">Costo</th><th class="th">Estado</th><th class="th"></th></tr></thead>
+            <tbody>
+              <template x-for="m in materiales.filter(x=>matArea==='Todos'||x.area===matArea)" :key="m.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-medium" x-text="m.nombre"></td>
+                  <td class="td text-xs text-gray-500" x-text="m.area"></td>
+                  <td class="td text-right font-bold" :class="m.stock<=m.minimo&&'txt-red'" x-text="m.stock+' '+m.unidad"></td>
+                  <td class="td text-right text-gray-500" x-text="m.minimo"></td>
+                  <td class="td text-right font-mono" x-text="S(m.costo)+' / '+m.unidad"></td>
+                  <td class="td"><span class="chip"><span class="dot" :style="'background:'+(m.stock<=m.minimo?'var(--red)':m.stock<=m.minimo*2?'var(--amber)':'var(--green)')"></span><span x-text="m.stock<=m.minimo?'Reponer':'OK'"></span></span></td>
+                  <td class="td"><button @click="abrirConsumo(m)" class="btn-ghost rounded px-3 py-1 text-[11px] font-bold">− Consumir</button></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div x-show="page==='clientes'" class="fade-in space-y-4">
+        <h1 class="text-xl font-bold">Clientes</h1>
+        <div class="card overflow-hidden">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">DNI / RUC</th><th class="th">Nombre</th><th class="th">Teléfono</th><th class="th">Vehículos</th><th class="th" style="text-align:right">Visitas</th></tr></thead>
+            <tbody>
+              <template x-for="c in clientes" :key="c.dni">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-mono" x-text="c.dni"></td>
+                  <td class="td font-medium" x-text="c.nombre"></td>
+                  <td class="td text-gray-500" x-text="c.telefono"></td>
+                  <td class="td"><template x-for="v in c.vehiculos"><span class="chip mr-1" x-text="v.marca+' · '+v.placa"></span></template></td>
+                  <td class="td text-right font-bold" x-text="c.visitas"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CHAT DEL EQUIPO (web) -->
+      <div x-show="page==='chat'" class="fade-in max-w-2xl">
+        <h1 class="text-xl font-bold mb-1">Chat del equipo PROAUTO</h1>
+        <p class="text-xs text-gray-500 mb-4">Comunicación interna del taller — visible para todo el equipo</p>
+        <div class="card flex flex-col" style="height:480px">
+          <div class="flex-1 overflow-auto p-4 space-y-3 scroll">
+            <template x-for="m in mensajes" :key="m.id">
+              <div :class="m.de===user?.nombre?'flex justify-end':'flex justify-start'">
+                <div class="bubble" :style="m.de===user?.nombre?'background:var(--orange);color:#fff':'background:var(--soft)'">
+                  <div class="text-[10px] font-bold opacity-70 mb-0.5" x-text="m.de+' · '+m.hora"></div>
+                  <div x-text="m.texto"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div class="p-3 border-t flex gap-2" style="border-color:var(--border)">
+            <input type="text" x-model="msg" @keydown.enter="enviarMsg()" placeholder="Escribe un mensaje al equipo…" class="inp ring-o flex-1">
+            <button @click="enviarMsg()" class="btn-primary rounded-lg px-5 text-sm font-bold">Enviar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASISTENCIA -->
+      <div x-show="page==='asistencia'" class="fade-in space-y-4">
+        <div><h1 class="text-xl font-bold">Control de asistencia</h1><p class="text-xs text-gray-500">Marcación por huella únicamente al ingreso y a la salida (el refrigerio no se marca) — registros inmutables, solo el administrador corrige con motivo</p></div>
+        <div class="card overflow-hidden">
+          <div class="p-3 border-b font-bold text-sm" style="border-color:var(--border)">Marcaciones de hoy</div>
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Colaborador</th><th class="th">Puesto</th><th class="th">Entrada</th><th class="th">Salida</th><th class="th" style="text-align:right">Tardanza</th><th class="th" style="text-align:right">Descuento</th></tr></thead>
+            <tbody>
+              <template x-for="e in empleados" :key="e.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-medium" x-text="e.nombre"></td>
+                  <td class="td text-gray-500 text-xs" x-text="e.cargo"></td>
+                  <td class="td font-mono" :class="e.atraso>0&&'txt-red font-bold'" x-text="e.entrada"></td>
+                  <td class="td font-mono text-gray-500" x-text="e.salida||'— en jornada'"></td>
+                  <td class="td text-right" x-text="e.atraso>0?e.atraso+' min':'—'"></td>
+                  <td class="td text-right font-mono" :class="e.atraso>0&&'txt-red'" x-text="e.atraso>0?S(e.atraso*0.50):'—'"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <div class="card overflow-hidden">
+          <div class="p-3 border-b flex justify-between items-center" style="border-color:var(--border)">
+            <span class="font-bold text-sm">Consolidado semanal — Semana del 13 al 18 de julio</span>
+            <div class="flex gap-2 text-xs"><button class="btn-ghost rounded px-3 py-1">‹ Anterior</button><button class="btn-ghost rounded px-3 py-1">Siguiente ›</button></div>
+          </div>
+          <table class="w-full text-xs">
+            <thead style="background:var(--canvas)"><tr>
+              <th class="th">Colaborador</th>
+              <template x-for="d in ['Lun 13','Mar 14','Mié 15','Jue 16','Vie 17','Sáb 18']"><th class="th" style="text-align:center" x-text="d"></th></template>
+              <th class="th" style="text-align:right">Tardanzas</th><th class="th" style="text-align:right">Faltas</th><th class="th" style="text-align:right">Desc. acum.</th>
+            </tr></thead>
+            <tbody>
+              <template x-for="e in empleados" :key="e.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-medium" x-text="e.nombre"></td>
+                  <template x-for="(d,idx) in e.semana" :key="idx"><td class="td text-center font-mono" :class="d==='F'?'txt-red font-bold':(d.includes('+')?'txt-red':'text-gray-600')" x-text="d"></td></template>
+                  <td class="td text-right font-semibold" x-text="e.tardanzasSem+' min'"></td>
+                  <td class="td text-right font-semibold" :class="e.faltasSem>0&&'txt-red'" x-text="e.faltasSem"></td>
+                  <td class="td text-right font-mono font-semibold txt-red" x-text="S(e.tardanzasSem*0.50+e.faltasSem*58)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="p-3 text-[11px] text-gray-500 border-t" style="border-color:var(--border)">Celda: hora de entrada · "+N" = min de tardanza · "F" = falta · Regla: S/ 0.50 por minuto, S/ 58.00 por falta (configurable).</div>
+        </div>
+      </div>
+
+      <!-- FINANZAS -->
+      <div x-show="page==='finanzas'" class="fade-in space-y-4">
+        <div class="flex justify-between items-center">
+          <div><h1 class="text-xl font-bold">Finanzas y ratios</h1><p class="text-xs text-gray-500">Flujo de caja generado automáticamente desde los cierres</p></div>
+          <div class="flex gap-1 card p-1">
+            <template x-for="p in ['Día','Semana','Mes']" :key="p"><button @click="periodo=p" :class="periodo===p?'btn-dark':''" class="rounded-md px-4 py-1.5 text-xs font-semibold" x-text="p"></button></template>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-3">
+          <div class="card p-4"><div class="lbl">Margen bruto</div><div class="text-2xl font-bold mt-1">62.4%</div></div>
+          <div class="card p-4"><div class="lbl">Margen neto</div><div class="text-2xl font-bold mt-1" style="color:var(--green)">31.8%</div></div>
+          <div class="card p-4"><div class="lbl">ROI mensual</div><div class="text-2xl font-bold mt-1">8.2%</div></div>
+          <div class="card p-4"><div class="lbl">Cobertura de caja</div><div class="text-2xl font-bold mt-1">18 días</div></div>
+          <div class="card p-4"><div class="lbl">Ticket promedio</div><div class="text-2xl font-bold mt-1">S/ 148.50</div></div>
+          <div class="card p-4"><div class="lbl">Punto de equilibrio</div><div class="text-2xl font-bold mt-1">S/ 385/día</div></div>
+          <div class="card p-4"><div class="lbl">Crecimiento</div><div class="text-2xl font-bold mt-1" style="color:var(--green)">+9.6%</div></div>
+          <div class="card p-4"><div class="lbl">Cuentas por cobrar</div><div class="text-2xl font-bold mt-1 txt-red">S/ 1,240</div></div>
+        </div>
+        <div class="card overflow-hidden">
+          <div class="p-3 border-b font-bold text-sm" style="border-color:var(--border)" x-text="'Flujo de caja — vista por '+periodo.toLowerCase()+' (periodos en horizontal)'"></div>
+          <div class="overflow-x-auto scroll">
+            <table class="w-full" style="min-width:640px">
+              <thead style="background:var(--canvas)"><tr>
+                <th class="th">Concepto</th>
+                <template x-for="f in [...flujo[periodo]].reverse()" :key="f.p"><th class="th" style="text-align:right" x-text="f.p"></th></template>
+              </tr></thead>
+              <tbody>
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-semibold">Ingresos</td>
+                  <template x-for="f in [...flujo[periodo]].reverse()" :key="'i'+f.p"><td class="td text-right font-mono" x-text="S(f.i)"></td></template>
+                </tr>
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-semibold">Egresos</td>
+                  <template x-for="f in [...flujo[periodo]].reverse()" :key="'e'+f.p"><td class="td text-right font-mono txt-red" x-text="'('+S(f.e)+')'"></td></template>
+                </tr>
+                <tr class="border-t" style="border-color:var(--border);background:var(--soft)">
+                  <td class="td font-bold">Flujo neto</td>
+                  <template x-for="f in [...flujo[periodo]].reverse()" :key="'n'+f.p"><td class="td text-right font-mono font-bold" :style="'color:'+(f.i-f.e>=0?'var(--green)':'var(--red)')" x-text="S(f.i-f.e)"></td></template>
+                </tr>
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-semibold">Acumulado</td>
+                  <template x-for="f in [...flujo[periodo]].reverse()" :key="'a'+f.p"><td class="td text-right font-mono" x-text="S(f.ac)"></td></template>
+                </tr>
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-semibold">Estado</td>
+                  <template x-for="f in [...flujo[periodo]].reverse()" :key="'c'+f.p"><td class="td text-right"><span class="chip"><span class="dot" :style="'background:'+(f.c?'var(--green)':'var(--amber)')"></span><span x-text="f.c?'Cerrado':'Abierto'"></span></span></td></template>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Análisis complementario -->
+        <div class="grid grid-cols-3 gap-4">
+          <div class="card p-4">
+            <h3 class="font-bold text-sm mb-3">Participación por área (hoy)</h3>
+            <template x-for="a in ['Mecánica','Tornería','Repuestos']" :key="a">
+              <div class="mb-2.5">
+                <div class="flex justify-between text-xs mb-1"><span x-text="a"></span><b x-text="Math.round(ingArea(a)/Math.max(totalIngresos(),1)*100)+'%'"></b></div>
+                <div class="h-1.5 rounded-full" style="background:var(--soft)"><div class="h-1.5 rounded-full" :style="'width:'+Math.round(ingArea(a)/Math.max(totalIngresos(),1)*100)+'%;background:'+(a==='Tornería'?'var(--orange)':a==='Mecánica'?'var(--ink)':'#9CA3AF')"></div></div>
+              </div>
+            </template>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-bold text-sm mb-3">Egresos por categoría (hoy)</h3>
+            <template x-for="c in [...new Set(gastos.map(g=>g.categoria))]" :key="c">
+              <div class="flex justify-between py-1.5 border-b text-xs" style="border-color:var(--border)">
+                <span class="text-gray-600" x-text="c"></span>
+                <span class="font-mono font-semibold txt-red" x-text="S(gastos.filter(g=>g.categoria===c).reduce((s,g)=>s+g.total,0))"></span>
+              </div>
+            </template>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-bold text-sm mb-3">Margen por área (mes)</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between p-2 rounded" style="background:var(--soft)"><span>Mecánica</span><b style="color:var(--green)">62% margen</b></div>
+              <div class="flex justify-between p-2 rounded" style="background:var(--soft)"><span>Tornería (desc. material y 35%)</span><b style="color:var(--green)">41% margen</b></div>
+              <div class="flex justify-between p-2 rounded" style="background:var(--soft)"><span>Repuestos</span><b style="color:var(--amber)">28% margen</b></div>
+              <p class="text-[10px] text-gray-400 pt-1">Margen = (ingresos − costos directos) / ingresos. Se calculará automático con datos reales.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGOS AL PERSONAL (admin) -->
+      <div x-show="page==='pagos'" class="fade-in space-y-4">
+        <div>
+          <h1 class="text-xl font-bold">Pagos al personal</h1>
+          <p class="text-xs text-gray-500">Producción, adelantos y descuentos por asistencia — todo lo registrado en caja llega aquí automáticamente</p>
+        </div>
+        <div class="card overflow-hidden">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr>
+              <th class="th">Colaborador</th><th class="th">Esquema</th><th class="th" style="text-align:right">Producción hoy (35%)</th><th class="th" style="text-align:right">Pagado hoy</th><th class="th" style="text-align:right">Adelantos semana</th><th class="th" style="text-align:right">Desc. asistencia</th>
+            </tr></thead>
+            <tbody>
+              <template x-for="e in empleados" :key="e.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-medium" x-text="e.nombre"></td>
+                  <td class="td text-xs text-gray-500" x-text="e.cargo.includes('Tornería')?'35% producción diaria':'Semanal'"></td>
+                  <td class="td text-right font-mono" x-text="e.cargo.includes('Tornería')?S(sug35(e.nombre)):'—'"></td>
+                  <td class="td text-right font-mono" x-text="S(pagosProdDe(e.nombre))"></td>
+                  <td class="td text-right font-mono" :class="adelantosDe(e.nombre)>0&&'txt-orange'" x-text="S(adelantosDe(e.nombre))"></td>
+                  <td class="td text-right font-mono" :class="(e.tardanzasSem*0.5+e.faltasSem*58)>0&&'txt-red'" x-text="S(e.tardanzasSem*0.5+e.faltasSem*58)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="p-3 text-[11px] text-gray-500 border-t" style="border-color:var(--border)">
+            Producción = trabajos de tornería cobrados hoy − material usado, × 35%. Los adelantos y descuentos se restan del pago semanal. El material de tornería lo administra Dirección.
+          </div>
+        </div>
+        <div class="card overflow-hidden">
+          <div class="p-3 border-b font-bold text-sm" style="border-color:var(--border)">Historial de pagos y adelantos (desde caja)</div>
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Hora</th><th class="th">Colaborador</th><th class="th">Tipo</th><th class="th">Detalle</th><th class="th" style="text-align:right">Monto</th></tr></thead>
+            <tbody>
+              <template x-for="g in gastos.filter(x=>['Adelanto de sueldo a personal','Pago de producción (35% torneros)'].includes(x.categoria))" :key="g.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td text-gray-500" x-text="g.hora"></td>
+                  <td class="td font-medium" x-text="g.trabajador||'—'"></td>
+                  <td class="td text-xs" x-text="g.categoria.includes('Adelanto')?'Adelanto':'Pago producción'"></td>
+                  <td class="td text-xs text-gray-500" x-text="g.desc"></td>
+                  <td class="td text-right font-mono font-bold txt-red" x-text="'−'+S(g.total)"></td>
+                </tr>
+              </template>
+              <tr x-show="!gastos.filter(x=>['Adelanto de sueldo a personal','Pago de producción (35% torneros)'].includes(x.categoria)).length"><td class="td text-gray-400 text-center" colspan="5">Sin pagos ni adelantos registrados hoy</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cierre de semana -->
+        <div class="card overflow-hidden" style="border-color:var(--ink)">
+          <div class="p-3 border-b flex justify-between items-center" style="border-color:var(--border);background:#111827">
+            <span class="font-bold text-sm text-white">Cierre de semana — Neto a pagar (13 al 19 de julio)</span>
+            <button @click="showToast('Semana congelada. Reporte de pagos generado para imprimir.')" class="btn-primary rounded-lg px-4 py-1.5 text-xs font-bold">Congelar semana y generar reporte</button>
+          </div>
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr>
+              <th class="th">Colaborador</th><th class="th" style="text-align:right">Base semanal</th><th class="th" style="text-align:right">Producción 35%</th><th class="th" style="text-align:right">− Adelantos</th><th class="th" style="text-align:right">− Desc. asistencia</th><th class="th" style="text-align:right">Neto a pagar</th>
+            </tr></thead>
+            <tbody>
+              <template x-for="e in empleados" :key="e.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-medium" x-text="e.nombre"></td>
+                  <td class="td text-right font-mono" x-text="e.baseSem?S(e.baseSem):'—'"></td>
+                  <td class="td text-right font-mono" x-text="e.cargo.includes('Tornería')?S(sug35(e.nombre)):'—'"></td>
+                  <td class="td text-right font-mono txt-orange" x-text="adelantosDe(e.nombre)?'−'+S(adelantosDe(e.nombre)):'—'"></td>
+                  <td class="td text-right font-mono txt-red" x-text="(e.tardanzasSem*0.5+e.faltasSem*58)>0?'−'+S(e.tardanzasSem*0.5+e.faltasSem*58):'—'"></td>
+                  <td class="td text-right font-mono font-bold" x-text="S(netoSemana(e))"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="p-3 text-[11px] text-gray-500 border-t" style="border-color:var(--border)">
+            Al congelar, los montos quedan bloqueados y se genera el reporte imprimible para el pago del sábado. Los valores de producción son referenciales hasta el congelado (base semanal y bonos configurables por Dirección).
+          </div>
+        </div>
+      </div>
+
+      <!-- CRONOGRAMA DE TAREAS -->
+      <div x-show="page==='tareas'" class="fade-in space-y-4 max-w-4xl">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-xl font-bold">Cronograma de tareas del taller</h1>
+            <p class="text-xs text-gray-500">Funciones fijas del equipo — cada colaborador ve las suyas también en su app móvil</p>
+          </div>
+          <button x-show="user?.rol==='admin'" class="btn-dark rounded-lg px-4 py-2 text-sm font-semibold">Editar cronograma</button>
+        </div>
+        <div class="card overflow-hidden">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Tarea</th><th class="th">Frecuencia</th><th class="th">Día</th><th class="th">Responsable</th><th class="th" style="text-align:center">Cumplida</th></tr></thead>
+            <tbody>
+              <template x-for="t in tareas" :key="t.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td font-medium" x-text="t.tarea"></td>
+                  <td class="td text-xs text-gray-500" x-text="t.frecuencia"></td>
+                  <td class="td text-xs" x-text="t.dia"></td>
+                  <td class="td" x-text="t.responsable"></td>
+                  <td class="td text-center">
+                    <button @click="t.hecho=!t.hecho" class="rounded-lg px-3 py-1 text-[11px] font-bold" :class="t.hecho?'btn-primary':'btn-ghost'" x-text="t.hecho?'✓ Hecha':'Marcar'"></button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="p-3 text-[11px] text-gray-500 border-t" style="border-color:var(--border)">
+            Las tareas rotativas (como la limpieza del baño) cambian de responsable automáticamente cada día. La limpieza profunda del sábado por la tarde es de todo el equipo.
+          </div>
+        </div>
+      </div>
+
+      <!-- REGLAMENTO Y FUNCIONES -->
+      <div x-show="page==='reglamento'" class="fade-in max-w-3xl space-y-4">
+        <div>
+          <h1 class="text-xl font-bold">Reglamento y funciones</h1>
+          <p class="text-xs text-gray-500">Borrador inicial — la Administración lo editará y ampliará cuando se defina el reglamento formal</p>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-bold text-sm mb-3">Normas generales</h3>
+          <ul class="text-sm space-y-2 list-disc pl-5 text-gray-700">
+            <li>Jornada de 08:00 a 18:00. Marcación por huella al ingreso y a la salida.</li>
+            <li>Puntualidad: las tardanzas y faltas se descuentan según la regla vigente.</li>
+            <li>Todo trabajo se registra en el sistema antes de iniciarse.</li>
+            <li>Orden y limpieza del puesto de trabajo al inicio y al cierre de la jornada.</li>
+            <li>Uso de equipo de protección personal en todo trabajo de taller.</li>
+            <li>El trato al cliente es siempre respetuoso y profesional.</li>
+          </ul>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-bold text-sm mb-3">Funciones cuando no hay trabajos asignados</h3>
+          <ul class="text-sm space-y-2 list-disc pl-5 text-gray-700">
+            <li>Orden y limpieza de bahías, torno y zona de trabajo.</li>
+            <li>Mantenimiento preventivo de máquinas y herramientas.</li>
+            <li>Apoyo al conteo y organización del inventario de repuestos.</li>
+            <li>Apoyo entre áreas cuando otra tenga carga de trabajo.</li>
+            <li>Revisión de trabajos pendientes de mañana y preparación de materiales.</li>
+          </ul>
+        </div>
+        <button x-show="user?.rol==='admin'" class="btn-dark rounded-lg px-5 py-2.5 text-sm font-semibold">Editar reglamento (Administración)</button>
+      </div>
+
+      <!-- CIERRE -->
+      <div x-show="page==='cierre'" class="fade-in max-w-3xl mx-auto space-y-4">
+        <div><h1 class="text-xl font-bold">Cierre de caja diario</h1><p class="text-xs text-gray-500">Cuente el dinero físico por método y confirme. Al cerrar, la caja queda bloqueada y alimenta el flujo de caja.</p></div>
+        <div class="card p-6">
+          <table class="w-full text-sm">
+            <thead><tr class="border-b" style="border-color:var(--border)"><th class="th" style="padding-left:0">Método</th><th class="th" style="text-align:right">Según sistema</th><th class="th" style="text-align:right">Contado físico</th><th class="th" style="text-align:right">Diferencia</th></tr></thead>
+            <tbody>
+              <template x-for="m in metodos" :key="m">
+                <tr class="border-b" style="border-color:var(--border)">
+                  <td class="py-3 font-semibold" x-text="m"></td>
+                  <td class="py-3 text-right font-mono" x-text="S(saldoMetodo(m))"></td>
+                  <td class="py-3 text-right"><input type="number" step="0.01" x-model.number="cierre[m]" class="inp ring-o font-mono text-right" style="width:130px;display:inline-block" placeholder="0.00"></td>
+                  <td class="py-3 text-right font-mono font-bold" :class="cierre[m]!==undefined&&cierre[m]-saldoMetodo(m)<0&&'txt-red'" :style="cierre[m]!==undefined&&cierre[m]-saldoMetodo(m)>0&&'color:var(--green)'" x-text="cierre[m]!==undefined?((cierre[m]-saldoMetodo(m)>=0?'+':'')+S(cierre[m]-saldoMetodo(m))):'—'"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div class="mt-5 p-4 rounded-lg flex justify-between items-center" :style="'background:'+(difTotal()===0?'#ECFDF5':Math.abs(difTotal())>15?'#FEF2F2':'#FFFBEB')">
+            <div><div class="lbl">Diferencia total</div><div class="text-2xl font-bold font-mono" :class="Math.abs(difTotal())>15&&'txt-red'" x-text="(difTotal()>=0?'+':'')+S(difTotal())"></div></div>
+            <div class="text-sm font-semibold" :style="'color:'+(difTotal()===0?'var(--green)':Math.abs(difTotal())>15?'var(--red)':'var(--amber)')" x-text="difTotal()===0?'La caja cuadra':(Math.abs(difTotal())>15?'Diferencia significativa — requiere justificación':'Diferencia menor')"></div>
+          </div>
+          <textarea x-show="difTotal()!==0" x-model="cierre.nota" placeholder="Justificación de la diferencia…" class="inp ring-o mt-4" rows="2"></textarea>
+          <div class="flex gap-3 mt-5">
+            <button class="btn-ghost flex-1 rounded-lg py-3 font-semibold text-sm">Vista previa PDF</button>
+            <button @click="confirmarCierre()" class="btn-danger flex-1 rounded-lg py-3 font-semibold text-sm">Cerrar caja del día</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============ APP MÓVIL ============ -->
+<div x-show="view==='movil'" class="min-h-screen flex items-center justify-center gap-10 p-6" style="background:linear-gradient(150deg,#0A0A0A,#242424)">
+  <div class="mobile-frame">
+    <div class="mobile-screen">
+      <div class="p-4 pt-7" style="background:var(--black)">
+        <div class="flex justify-between items-center mb-2">
+          <div style="width:100px;height:30px" x-html="logo()"></div>
+          <button @click="logout()" class="text-[11px] text-neutral-500">Salir</button>
+        </div>
+        <div class="text-sm text-white font-semibold" x-text="movilNombre()"></div>
+        <div class="text-[11px] text-neutral-500 italic" x-text="'“'+fraseDia()+'”'"></div>
+      </div>
+
+      <!-- TAB: ÓRDENES / TRABAJO -->
+      <div x-show="movilTab==='ordenes'" class="flex-1 overflow-auto p-3 space-y-2.5 scroll">
+        <!-- Técnicos -->
+        <template x-if="['mecanico','tornero'].includes(movilRole)">
+          <div class="space-y-2.5">
+            <div class="rounded-xl p-3 text-[12px] font-semibold text-white" style="background:linear-gradient(120deg,var(--orange),#E8570F)">
+              <span x-text="movilRole==='mecanico'?'5 trabajos finalizados esta semana — excelente desempeño':'4 piezas entregadas a tiempo esta semana — gran precisión técnica'"></span>
+            </div>
+            <button @click="openNuevaOTMovil()" class="w-full btn-primary rounded-xl py-3 text-sm font-bold">+ Registrar nueva orden</button>
+            <template x-for="ot in otsMovil()" :key="ot.id">
+              <div class="card p-3">
+                <div class="flex justify-between items-center mb-1.5">
+                  <span class="font-mono text-[11px] font-bold" x-text="ot.id"></span>
+                  <span class="chip"><span class="dot" :style="'background:'+eColor(ot.estado)"></span><span x-text="ot.estado"></span></span>
+                </div>
+                <div class="text-[13px] font-semibold" x-text="ot.vehiculo||ot.pieza"></div>
+                <div class="text-[11px] text-gray-500" x-text="ot.cliente"></div>
+                <div class="text-[11px] bg-gray-100 rounded p-2 my-2" x-text="ot.trabajo"></div>
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                  <button class="btn-ghost rounded-lg py-1.5 text-[11px] font-semibold">Foto</button>
+                  <button class="btn-ghost rounded-lg py-1.5 text-[11px] font-semibold">Repuesto usado</button>
+                </div>
+                <button x-show="['INGRESO','APROBADA'].includes(ot.estado)" @click="ot.estado='EN PROCESO'" class="w-full btn-dark rounded-lg py-2 text-xs font-bold">Iniciar trabajo</button>
+                <button x-show="ot.estado==='EN PROCESO'" @click="abrirTerminar(ot)" class="w-full btn-primary rounded-lg py-2 text-xs font-bold">✓ Finalizar trabajo</button>
+                <div x-show="ot.estado==='POR COBRAR'" class="text-center text-[11px] font-semibold py-1.5 rounded-lg" style="background:#FEF2F2;color:var(--red)">En caja — pendiente de cobro y entrega</div>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <!-- Asesora de Servicio (móvil) -->
+        <template x-if="movilRole==='caja'">
+          <div class="space-y-2.5">
+            <div class="card p-3" x-show="porCobrar().length" style="border-color:var(--red)">
+              <div class="text-xs font-bold txt-red mb-2">🔔 Por cobrar — clientes en camino a caja</div>
+              <template x-for="ot in porCobrar()" :key="ot.id">
+                <div class="flex items-center justify-between py-2 border-b" style="border-color:var(--border)">
+                  <div><div class="text-[12px] font-bold" x-text="ot.id"></div><div class="text-[11px] text-gray-500" x-text="ot.cliente"></div></div>
+                  <button @click="abrirCobro(ot)" class="btn-primary rounded-lg px-3 py-1.5 text-[11px] font-bold" x-text="'Cobrar '+S(ot.monto)"></button>
+                </div>
+              </template>
+            </div>
+            <div class="card p-4">
+              <div class="lbl mb-2">Caja del día</div>
+              <div class="text-xl font-bold" x-text="S(totalIngresos())"></div>
+              <div class="text-[11px] text-gray-500">Egresos: <span class="txt-red" x-text="S(totalGastos())"></span></div>
+            </div>
+            <button @click="abrirPOS()" class="w-full btn-dark rounded-xl py-3 text-sm font-bold">🛒 Venta repuestos (escáner)</button>
+            <button @click="modalIngreso=true" class="w-full btn-primary rounded-xl py-3 text-sm font-bold">+ Registrar ingreso</button>
+            <button @click="modalGasto=true" class="w-full btn-ghost rounded-xl py-3 text-sm font-bold">− Registrar egreso</button>
+            <div class="card p-3" x-show="sugerencias.filter(s=>s.estado==='pendiente').length">
+              <div class="text-xs font-bold mb-2">Recomendaciones por revisar y enviar</div>
+              <template x-for="s in sugerencias.filter(x=>x.estado==='pendiente')" :key="s.id">
+                <div class="p-2 rounded-lg mb-2 text-[11px]" style="background:var(--soft)">
+                  <div class="text-gray-500 mb-1" x-text="s.ot+' · '+s.de"></div>
+                  <div x-text="s.texto"></div>
+                  <a :href="'https://wa.me/51987654321?text='+encodeURIComponent('Hola, le escribimos de PROAUTO 🚗. '+s.texto)" target="_blank" @click="s.estado='enviada'" class="inline-block btn-primary rounded px-3 py-1 text-[10px] font-bold mt-1.5">Aprobar y enviar WSP</a>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- Dueño -->
+        <template x-if="movilRole==='dueno'">
+          <div class="space-y-3">
+            <div class="card p-4"><div class="lbl">Ingresos de hoy</div><div class="text-2xl font-bold" x-text="S(totalIngresos())"></div>
+              <div class="text-[11px] text-gray-500 mt-1">Egresos: <span class="txt-red font-semibold" x-text="S(totalGastos())"></span> · Neto: <span class="font-semibold" style="color:var(--green)" x-text="S(totalIngresos()-totalGastos())"></span></div>
+            </div>
+            <div class="card p-4">
+              <div class="lbl mb-2">Caja chica de hoy — en vivo</div>
+              <div class="space-y-1 text-[11.5px] max-h-52 overflow-auto scroll">
+                <template x-for="a in actividad()" :key="a.id">
+                  <div class="flex justify-between gap-2 border-b py-1.5" style="border-color:var(--border)">
+                    <span class="flex-1"><b x-text="a.hora"></b> — <span x-text="a.desc"></span><span class="text-gray-400" x-text="a.det?' · '+a.det:''"></span></span>
+                    <span class="font-mono font-bold whitespace-nowrap" :class="a.neg&&'txt-red'" :style="!a.neg&&'color:var(--green)'" x-text="(a.neg?'−':'+')+S(a.total)"></span>
+                  </div>
+                </template>
+              </div>
+              <div class="flex justify-between mt-2 pt-2 border-t font-bold text-[12px]" style="border-color:var(--border)">
+                <span>Neto del día</span><span style="color:var(--green)" x-text="S(totalIngresos()-totalGastos())"></span>
+              </div>
+            </div>
+            <div class="card p-4">
+              <div class="lbl mb-2">Trabajos en este momento</div>
+              <template x-for="est in ['EN PROCESO','APROBADA','POR COBRAR','ENTREGADA']" :key="est">
+                <div class="flex justify-between py-1.5 border-b text-sm" style="border-color:var(--border)">
+                  <span class="flex items-center gap-2"><span class="dot" :style="'background:'+eColor(est)"></span><span x-text="est"></span></span>
+                  <b x-text="ots.filter(o=>o.estado===est).length"></b>
+                </div>
+              </template>
+            </div>
+            <div class="card p-4">
+              <div class="lbl mb-2">Avisos</div>
+              <div class="text-[12px] space-y-1.5">
+                <div class="txt-red font-semibold" x-show="porCobrar().length" x-text="'• '+porCobrar().length+' trabajo(s) por cobrar en caja'"></div>
+                <div class="txt-red font-semibold">• 2 tardanzas hoy (19 min)</div>
+                <div class="font-semibold" style="color:var(--amber)">• 3 repuestos bajo stock mínimo</div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- TAB: CHAT -->
+      <div x-show="movilTab==='chat'" class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 overflow-auto p-3 space-y-2.5 scroll">
+          <template x-for="m in mensajes" :key="m.id">
+            <div :class="m.de===user?.nombre?'flex justify-end':'flex justify-start'">
+              <div class="bubble" :style="m.de===user?.nombre?'background:var(--orange);color:#fff':'background:#fff;border:1px solid var(--border)'">
+                <div class="text-[9px] font-bold opacity-70 mb-0.5" x-text="m.de+' · '+m.hora"></div>
+                <div x-text="m.texto"></div>
+              </div>
+            </div>
+          </template>
+        </div>
+        <div class="p-2.5 bg-white border-t flex gap-2" style="border-color:var(--border)">
+          <input type="text" x-model="msg" @keydown.enter="enviarMsg()" placeholder="Mensaje al equipo…" class="inp ring-o flex-1 text-[12px]">
+          <button @click="enviarMsg()" class="btn-primary rounded-lg px-4 text-xs font-bold">➤</button>
+        </div>
+      </div>
+
+      <!-- TAB: PERFIL -->
+      <div x-show="movilTab==='perfil'" class="flex-1 overflow-auto p-3 space-y-3 scroll">
+        <div class="card p-4 text-center">
+          <div class="w-20 h-20 rounded-full mx-auto flex items-center justify-center font-bold text-white text-2xl" :style="'background:'+(movilRole==='dueno'?'var(--black)':'var(--orange)')" x-text="user?.ini||'DR'"></div>
+          <button class="text-[11px] font-semibold txt-orange mt-2">Cambiar foto de perfil</button>
+          <div class="font-bold mt-1" x-text="user?.nombre||'Dirección'"></div>
+          <div class="text-[11px] text-gray-500" x-text="user?.cargo||'Administrador'"></div>
+        </div>
+        <!-- Mi día: resumen automático de la jornada -->
+        <div class="card p-4" x-show="movilRole!=='dueno'">
+          <div class="lbl mb-2">Mi jornada de hoy</div>
+          <div class="space-y-1.5 text-[12px]">
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:#ECFDF5">
+              <span class="dot" style="background:var(--green)"></span>
+              <span class="flex-1 font-semibold">Finalizados</span>
+              <b x-text="misOts().filter(o=>['POR COBRAR','ENTREGADA'].includes(o.estado)).length"></b>
+            </div>
+            <template x-for="o in misOts().filter(x=>['POR COBRAR','ENTREGADA'].includes(x.estado))" :key="o.id">
+              <div class="text-[11px] text-gray-500 pl-6" x-text="o.id+' — '+(o.vehiculo||o.pieza)"></div>
+            </template>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:#FFF7ED">
+              <span class="dot" style="background:var(--orange)"></span>
+              <span class="flex-1 font-semibold">En proceso</span>
+              <b x-text="misOts().filter(o=>o.estado==='EN PROCESO').length"></b>
+            </div>
+            <template x-for="o in misOts().filter(x=>x.estado==='EN PROCESO')" :key="o.id">
+              <div class="text-[11px] text-gray-500 pl-6" x-text="o.id+' — '+(o.vehiculo||o.pieza)"></div>
+            </template>
+            <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--soft)">
+              <span class="dot" style="background:var(--muted)"></span>
+              <span class="flex-1 font-semibold">Pendientes para iniciar</span>
+              <b x-text="misOts().filter(o=>['INGRESO','APROBADA'].includes(o.estado)).length"></b>
+            </div>
+            <template x-for="o in misOts().filter(x=>['INGRESO','APROBADA'].includes(x.estado))" :key="o.id">
+              <div class="text-[11px] text-gray-500 pl-6" x-text="o.id+' — '+(o.vehiculo||o.pieza)+(o.entrega?' · entrega '+o.entrega:'')"></div>
+            </template>
+          </div>
+        </div>
+        <div class="card p-4" x-show="movilRole!=='dueno'">
+          <div class="lbl mb-2">Mi semana</div>
+          <div class="grid grid-cols-2 gap-2 text-center">
+            <div class="p-2 rounded-lg" style="background:var(--soft)"><div class="text-lg font-bold" x-text="miEmpleado()?.semana.filter(d=>d!=='F').length||6"></div><div class="text-[10px] text-gray-500">Días asistidos</div></div>
+            <div class="p-2 rounded-lg" style="background:var(--soft)"><div class="text-lg font-bold" :class="(miEmpleado()?.tardanzasSem||0)>0&&'txt-red'" x-text="(miEmpleado()?.tardanzasSem||0)+' min'"></div><div class="text-[10px] text-gray-500">Tardanzas</div></div>
+          </div>
+        </div>
+        <div class="card p-4" x-show="movilRole!=='dueno'">
+          <div class="lbl mb-2">Mi registro de asistencia (semana)</div>
+          <template x-for="(d,idx) in (miEmpleado()?.semana||[])" :key="idx">
+            <div class="flex justify-between py-1.5 border-b text-[12px]" style="border-color:var(--border)">
+              <span class="text-gray-500" x-text="['Lun','Mar','Mié','Jue','Vie','Sáb'][idx]"></span>
+              <span class="font-mono font-semibold" :class="d==='F'?'txt-red':(d.includes('+')?'txt-red':'')" x-text="d==='F'?'Falta':d"></span>
+            </div>
+          </template>
+          <p class="text-[10px] text-gray-400 mt-2">Registro del lector de huella (solo ingreso y salida) — solo lectura. Cualquier consulta, con la Administración.</p>
+        </div>
+        <div class="card p-4" x-show="movilRole!=='dueno'">
+          <div class="lbl mb-2">Mis tareas de hoy</div>
+          <template x-for="t in tareasHoyDe(user?.nombre||'')" :key="t.id">
+            <div class="flex items-center gap-2 py-1.5 border-b text-[12px]" style="border-color:var(--border)">
+              <button @click="t.hecho=!t.hecho" class="w-5 h-5 rounded border flex items-center justify-center text-[10px] font-bold" :style="t.hecho?'background:var(--orange);color:#fff;border-color:var(--orange)':'border-color:#D1D5DB'" x-text="t.hecho?'✓':''"></button>
+              <span class="flex-1" :class="t.hecho&&'line-through text-gray-400'" x-text="t.tarea"></span>
+              <span class="text-[10px] text-gray-400" x-text="t.dia"></span>
+            </div>
+          </template>
+        </div>
+        <div class="card p-4" x-show="movilRole!=='dueno'">
+          <div class="lbl mb-2">Reglamento del taller</div>
+          <div class="text-[11px] text-gray-600 space-y-1.5">
+            <div>• Marcación por huella al ingreso y a la salida.</div>
+            <div>• Todo trabajo se registra en el sistema antes de iniciarse.</div>
+            <div>• Orden y limpieza del puesto al cierre de la jornada.</div>
+            <div>• Sin trabajos asignados: mantenimiento, orden e inventario.</div>
+          </div>
+          <p class="text-[10px] text-gray-400 mt-2">Versión completa en el sistema — sección Reglamento y funciones.</p>
+        </div>
+        <button class="w-full btn-ghost rounded-xl py-2.5 text-xs font-semibold">Cambiar mi PIN</button>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="bg-white border-t flex" style="border-color:var(--border)">
+        <div @click="movilTab='ordenes'" :class="movilTab==='ordenes'&&'active'" class="mtab"><div class="text-base">🔧</div><span x-text="movilRole==='caja'?'Caja':(movilRole==='dueno'?'Negocio':'Órdenes')"></span></div>
+        <div @click="movilTab='chat'" :class="movilTab==='chat'&&'active'" class="mtab"><div class="text-base">💬</div>Equipo</div>
+        <div @click="movilTab='perfil'" :class="movilTab==='perfil'&&'active'" class="mtab"><div class="text-base">👤</div>Mi perfil</div>
+      </div>
+    </div>
+  </div>
+  <div class="text-white max-w-xs hidden lg:block">
+    <h2 class="text-xl font-bold mb-2" x-text="'Vista móvil — '+movilNombre()"></h2>
+    <p class="text-sm text-neutral-400 leading-relaxed">Cada rol ve lo suyo: los técnicos sus órdenes y su asistencia, la asesora los cobros pendientes con alerta sonora, el dueño el negocio en vivo. Todos comparten el chat del equipo.</p>
+    <button @click="logout()" class="btn-ghost rounded-lg px-4 py-2 text-xs font-semibold mt-4">← Volver al inicio</button>
+  </div>
+</div>
+
+<!-- ============ MODAL TERMINAR TRABAJO (móvil técnico) ============ -->
+<div x-show="modalFin" @keydown.escape.window="modalFin=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-1">Finalizar trabajo</h2>
+    <p class="text-xs text-gray-500 mb-4" x-text="otFin?.id+' — al confirmar, caja recibirá la notificación para gestionar el cobro y la entrega.'"></p>
+    <span class="lbl">Observaciones y recomendaciones para el cliente (opcional)</span>
+    <textarea x-model="obsFin" placeholder="Ej.: Se recomienda cambiar la correa de distribución en el próximo servicio (aprox. 5,000 km)." class="inp ring-o mt-1" rows="3"></textarea>
+    <p class="text-[11px] text-gray-400 mt-2">Su recomendación será revisada por la Asesora de Servicio, quien la enviará al cliente por WhatsApp.</p>
+    <div class="flex gap-2 mt-4">
+      <button @click="modalFin=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="terminarTrabajo()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">✓ Finalizar trabajo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL NUEVA OT ============ -->
+<div x-show="modalOT" @keydown.escape.window="modalOT=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-xl w-full max-h-[92vh] overflow-auto shadow-2xl fade-in scroll">
+    <div class="p-5 border-b flex justify-between items-center" style="border-color:var(--border)">
+      <div>
+        <h2 class="text-lg font-bold">Nueva orden de trabajo</h2>
+        <p class="text-[11px] text-gray-500" x-show="nOT.desdeMovil">Registrada desde el móvil — pasa automáticamente a la base de datos central</p>
+      </div>
+      <button @click="modalOT=false" class="text-gray-400 text-2xl leading-none">×</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div x-show="!nOT.areaFija">
+        <span class="lbl">Área</span>
+        <div class="flex gap-2 mt-1">
+          <button @click="nOT.area='Mecánica'" :class="nOT.area==='Mecánica'?'btn-dark':'btn-ghost'" class="flex-1 rounded-lg py-2.5 text-sm font-semibold">Mecánica</button>
+          <button @click="nOT.area='Tornería'" :class="nOT.area==='Tornería'?'btn-dark':'btn-ghost'" class="flex-1 rounded-lg py-2.5 text-sm font-semibold">Tornería</button>
+        </div>
+      </div>
+
+      <template x-if="nOT.area==='Mecánica'">
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div><span class="lbl">DNI del cliente</span><input type="text" x-model="nOT.dni" @input="lookupDNI()" maxlength="8" placeholder="45678912" class="inp ring-o font-mono mt-1"></div>
+            <div><span class="lbl">Placa</span><input type="text" x-model="nOT.placa" @input="lookupPlaca()" placeholder="ABC-123" class="inp ring-o font-mono uppercase mt-1"></div>
+          </div>
+          <div x-show="nOT.nombre" class="p-3 rounded-lg fade-in" style="background:#ECFDF5">
+            <div class="text-[11px] font-semibold" style="color:var(--green)">Cliente identificado (RENIEC / base propia)</div>
+            <div class="font-bold text-sm" x-text="nOT.nombre"></div>
+            <div class="text-xs text-gray-600" x-show="nOT.vehiculoTxt" x-text="nOT.vehiculoTxt"></div>
+          </div>
+        </div>
+      </template>
+      <template x-if="nOT.area==='Tornería'">
+        <div class="grid grid-cols-2 gap-3">
+          <div><span class="lbl">DNI (opcional)</span><input type="text" x-model="nOT.dni" @input="lookupDNI()" maxlength="8" placeholder="45678912" class="inp ring-o font-mono mt-1"></div>
+          <div><span class="lbl">Nombre del cliente</span><input type="text" x-model="nOT.nombre" placeholder="Se llena solo si hay DNI" class="inp ring-o mt-1"></div>
+        </div>
+      </template>
+
+      <!-- MÚLTIPLES TRABAJOS EN UNA MISMA ORDEN -->
+      <div>
+        <div class="flex justify-between items-center">
+          <span class="lbl">Trabajos a realizar (puede ser más de uno)</span>
+          <div class="flex gap-3">
+            <button @click="nOT.items.push({t:'',p:null})" class="text-[11px] font-bold txt-orange">+ Del catálogo</button>
+            <button @click="nOT.items.push({t:'',p:null,libre:true})" class="text-[11px] font-bold text-gray-500">+ No listado</button>
+          </div>
+        </div>
+        <div class="space-y-2 mt-1">
+          <template x-for="(it,idx) in nOT.items" :key="idx">
+            <div class="flex gap-2 items-center">
+              <template x-if="!it.libre">
+                <select x-model="it.t" class="inp ring-o flex-1">
+                  <option value="">— Elegir trabajo —</option>
+                  <template x-if="nOT.area==='Mecánica'">
+                    <optgroup label="Mecánica">
+                      <option>Cambio de aceite y filtros</option><option>Cambio de pastillas de freno</option><option>Revisión general</option><option>Afinamiento de motor</option><option>Suspensión / tren delantero</option><option>Cambio de correa de distribución</option>
+                    </optgroup>
+                  </template>
+                  <template x-if="nOT.area==='Tornería'">
+                    <optgroup label="Tornería">
+                      <option>Rectificado de cigüeñal</option><option>Torneado de eje</option><option>Roscado</option><option>Soldadura especial</option><option>Fabricación de pieza</option><option>Ajuste de medida</option>
+                    </optgroup>
+                  </template>
+                </select>
+              </template>
+              <template x-if="it.libre">
+                <input type="text" x-model="it.t" placeholder="Describa el trabajo (no está en la lista)…" class="inp ring-o flex-1">
+              </template>
+              <input type="number" step="0.01" x-model.number="it.p" placeholder="S/ 0.00" class="inp ring-o font-mono" style="width:110px">
+              <button x-show="nOT.items.length>1" @click="nOT.items.splice(idx,1)" class="text-gray-400 hover:text-red-600 text-lg">×</button>
+            </div>
+          </template>
+        </div>
+        <div class="flex justify-between mt-2 p-2.5 rounded-lg font-bold text-sm" style="background:var(--soft)">
+          <span>Total de la orden</span>
+          <span x-text="S(nOT.items.reduce((s,i)=>s+(i.p||0),0))"></span>
+        </div>
+      </div>
+
+      <div x-show="!nOT.desdeMovil">
+        <span class="lbl">Responsable asignado</span>
+        <select x-model="nOT.maestro" class="inp ring-o mt-1">
+          <option value="">— Elegir —</option>
+          <template x-if="nOT.area==='Mecánica'"><option>L. Ramírez</option></template>
+          <template x-if="nOT.area==='Mecánica'"><option>C. Andrade</option></template>
+          <template x-if="nOT.area==='Tornería'"><option>M. Villacorta</option></template>
+          <template x-if="nOT.area==='Tornería'"><option>D. Salazar</option></template>
+        </select>
+      </div>
+      <div>
+        <span class="lbl">Entrega estimada</span>
+        <div class="grid grid-cols-3 gap-2 mt-1">
+          <button @click="nOT.entTipo='hoy'" :class="nOT.entTipo==='hoy'?'btn-dark':'btn-ghost'" class="rounded-lg py-2 text-xs font-semibold">Hoy mismo</button>
+          <button @click="nOT.entTipo='manana'" :class="nOT.entTipo==='manana'?'btn-dark':'btn-ghost'" class="rounded-lg py-2 text-xs font-semibold">Mañana</button>
+          <button @click="nOT.entTipo='fecha'" :class="nOT.entTipo==='fecha'?'btn-dark':'btn-ghost'" class="rounded-lg py-2 text-xs font-semibold">Otra fecha</button>
+        </div>
+        <select x-show="nOT.entTipo==='hoy'" x-model="nOT.entHora" class="inp ring-o mt-2">
+          <option>En 1 hora</option><option>En 2 horas</option><option>En 3 horas</option><option>Mediodía</option><option>3:00 pm</option><option>5:00 pm</option><option>Fin del día</option>
+        </select>
+        <input x-show="nOT.entTipo==='fecha'" type="date" x-model="nOT.entFecha" class="inp ring-o mt-2">
+        <p class="text-[11px] text-gray-500 mt-1">La mayoría de trabajos se entrega el mismo día. Use "Otra fecha" para proyectos de varios días.</p>
+      </div>
+      <p x-show="nOT.desdeMovil" class="text-[11px] text-gray-500">El responsable eres tú (<span class="font-semibold" x-text="user?.nombre"></span>).</p>
+    </div>
+    <div class="p-5 border-t flex gap-3" style="border-color:var(--border);background:var(--canvas)">
+      <button @click="modalOT=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm font-semibold">Cancelar</button>
+      <button @click="guardarOT()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">Registrar orden</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL INGRESO ============ -->
+<div x-show="modalIngreso" @keydown.escape.window="modalIngreso=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-4">Registrar ingreso</h2>
+    <div class="space-y-3">
+      <div><span class="lbl">Área</span><select x-model="tIng.area" @change="tIng.codigo='';tIng.desc=''" class="inp ring-o mt-1"><option>Mecánica</option><option>Tornería</option><option>Repuestos</option></select></div>
+      <div x-show="tIng.area!=='Repuestos'"><span class="lbl">Descripción</span><input type="text" x-model="tIng.desc" placeholder="Ej.: Cobro OT-0041" class="inp ring-o mt-1"></div>
+      <div x-show="tIng.area==='Repuestos'">
+        <span class="lbl">Producto del inventario (muestra stock disponible)</span>
+        <select x-model="tIng.codigo" @change="pickProd()" class="inp ring-o mt-1">
+          <option value="">— Elegir producto —</option>
+          <template x-for="p in inventario.filter(x=>x.stock>0)" :key="p.codigo">
+            <option :value="p.codigo" x-text="p.nombre+' — Stock: '+p.stock+' — '+S(p.precio)"></option>
+          </template>
+        </select>
+        <p class="text-[11px] text-gray-500 mt-1">Solo aparecen productos con stock. Al registrar la venta, el stock se descuenta automáticamente. Para vender más rápido usa el botón "🛒 Venta repuestos (escáner)".</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><span class="lbl">Cantidad <span x-show="tIng.area==='Repuestos'&&tIng.codigo" class="text-gray-400" x-text="'(máx. '+(prodByCodigo(tIng.codigo)?.stock||0)+')'"></span></span><input type="number" min="1" :max="tIng.area==='Repuestos'&&tIng.codigo?prodByCodigo(tIng.codigo)?.stock:999" x-model.number="tIng.cant" class="inp ring-o font-mono mt-1"></div>
+        <div x-show="tIng.area!=='Repuestos'"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><span class="lbl">Precio unitario (S/)</span><input type="number" step="0.01" x-model.number="tIng.unit" placeholder="0.00" class="inp ring-o font-mono mt-1"></div>
+        <div><span class="lbl">Total (S/)</span><div class="inp mt-1 font-mono font-bold" style="background:var(--soft)" x-text="S((tIng.cant||0)*(tIng.unit||0))"></div></div>
+      </div>
+      <div><span class="lbl">Método de pago</span>
+        <div class="grid grid-cols-4 gap-2 mt-1">
+          <template x-for="m in metodos" :key="m"><button @click="tIng.metodo=m" :class="tIng.metodo===m?'btn-dark':'btn-ghost'" class="rounded-lg py-2 text-xs font-semibold" x-text="m"></button></template>
+        </div>
+      </div>
+      <div x-show="tIng.metodo==='Transferencia'"><span class="lbl">Banco</span>
+        <div class="grid grid-cols-3 gap-2 mt-1">
+          <template x-for="b in ['BCP','Interbank','BBVA']" :key="b"><button @click="tIng.banco=b" :class="tIng.banco===b?'btn-dark':'btn-ghost'" class="rounded-lg py-2 text-xs font-semibold" x-text="b"></button></template>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalIngreso=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="guardarIngreso()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL EGRESO ============ -->
+<div x-show="modalGasto" @keydown.escape.window="modalGasto=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-4">Registrar egreso</h2>
+    <div class="space-y-3">
+      <div><span class="lbl">Descripción</span><input type="text" x-model="tGas.desc" placeholder="Ej.: Compra de empaque de motor" class="inp ring-o mt-1"></div>
+      <div><span class="lbl">Categoría</span>
+        <select x-model="tGas.categoria" class="inp ring-o mt-1">
+          <option>Compra de repuestos e insumos</option>
+          <option>Subvención alimentaria</option>
+          <option>Adelanto de sueldo a personal</option>
+          <option>Pago de producción (35% torneros)</option>
+          <option>Pago de préstamo (prestamista)</option>
+          <option>Servicios de terceros</option>
+          <option>Mantenimiento del taller</option>
+          <option>Otros gastos operativos</option>
+        </select>
+      </div>
+      <div x-show="['Subvención alimentaria','Adelanto de sueldo a personal','Pago de producción (35% torneros)'].includes(tGas.categoria)"><span class="lbl">Colaborador</span>
+        <select x-model="tGas.trabajador" class="inp ring-o mt-1">
+          <option value="">— Elegir —</option><option>L. Ramírez</option><option>C. Andrade</option><option>M. Villacorta</option><option>D. Salazar</option><option>M. F. Ríos</option><option>Todos</option>
+        </select>
+      </div>
+      <div x-show="tGas.categoria==='Pago de producción (35% torneros)'&&tGas.trabajador" class="p-3 rounded-lg text-[12px]" style="background:#FFF7ED">
+        <div>Producción cobrada hoy de <b x-text="tGas.trabajador"></b>: <b x-text="S(prodHoy(tGas.trabajador))"></b> · Material usado: <b class="txt-red" x-text="S(matHoy(tGas.trabajador))"></b></div>
+        <div class="mt-1">Pago sugerido (35% neto): <b class="txt-orange" x-text="S(sug35(tGas.trabajador))"></b>
+          <button @click="tGas.total=Math.round(sug35(tGas.trabajador)*100)/100" class="btn-ghost rounded px-2 py-0.5 text-[10px] font-bold ml-2">Usar sugerido</button>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-1">El cálculo es referencial; la Asesora de Servicio confirma el monto final antes del cierre de caja.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><span class="lbl">Área correspondiente</span><select x-model="tGas.area" class="inp ring-o mt-1"><option>General</option><option>Mecánica</option><option>Tornería</option><option>Repuestos</option></select></div>
+        <div><span class="lbl">Total (S/)</span><input type="number" step="0.01" x-model.number="tGas.total" placeholder="0.00" class="inp ring-o font-mono mt-1"></div>
+      </div>
+      <div><span class="lbl">Método de pago</span>
+        <div class="grid grid-cols-4 gap-2 mt-1">
+          <template x-for="m in metodos" :key="m"><button @click="tGas.metodo=m" :class="tGas.metodo===m?'btn-dark':'btn-ghost'" class="rounded-lg py-2 text-xs font-semibold" x-text="m"></button></template>
+        </div>
+      </div>
+      <button class="w-full btn-ghost rounded-lg py-2.5 text-xs font-semibold text-gray-500">Adjuntar foto del comprobante</button>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalGasto=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="guardarGasto()" class="btn-danger flex-1 rounded-lg py-2.5 text-sm font-bold">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL DETALLE ============ -->
+<div x-show="modalDet" @keydown.escape.window="modalDet=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 fade-in">
+    <div class="flex justify-between items-start mb-4">
+      <div><div class="text-xs text-gray-500" x-text="det.fecha"></div><h2 class="text-xl font-bold font-mono" x-text="det.id"></h2></div>
+      <button @click="modalDet=false" class="text-gray-400 text-2xl leading-none">×</button>
+    </div>
+    <div class="space-y-3 text-sm">
+      <div class="flex gap-2">
+        <span class="chip"><span class="dot" :style="'background:'+eColor(det.estado)"></span><span x-text="det.estado"></span></span>
+        <span class="chip" x-text="det.area"></span>
+      </div>
+      <div class="p-3 rounded-lg" style="background:var(--soft)"><div class="font-bold" x-text="det.vehiculo||det.pieza"></div><div class="text-xs text-gray-500" x-text="det.cliente"></div></div>
+      <div><span class="lbl">Trabajos</span><div x-text="det.trabajo"></div></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><span class="lbl">Responsable</span><div class="font-medium" x-text="det.maestro"></div></div>
+        <div><span class="lbl">Entrega</span><div class="font-medium" x-text="det.entrega||'Por definir'"></div></div>
+      </div>
+      <div class="flex justify-between pt-3 border-t font-bold" style="border-color:var(--border)"><span>Precio</span><span class="text-lg" x-text="S(det.monto)"></span></div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      <button class="btn-ghost rounded-lg py-2.5 text-sm font-semibold">Imprimir</button>
+      <button x-show="det.estado==='POR COBRAR'" @click="modalDet=false;abrirCobro(det)" class="btn-primary rounded-lg py-2.5 text-sm font-bold">Cobrar y entregar</button>
+      <button x-show="det.estado!=='POR COBRAR'" class="btn-primary rounded-lg py-2.5 text-sm font-bold">Cobrar</button>
+    </div>
+    <button class="w-full btn-ghost rounded-lg py-2 text-xs font-semibold mt-2">Notificar por WhatsApp</button>
+  </div>
+</div>
+
+<!-- ============ MODAL POS: VENTA CON ESCÁNER ============ -->
+<div x-show="modalPOS" @keydown.escape.window="modalPOS=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-auto shadow-2xl fade-in scroll">
+    <div class="p-5 border-b flex justify-between items-center" style="border-color:var(--border)">
+      <div>
+        <h2 class="text-lg font-bold">🛒 Venta de repuestos</h2>
+        <p class="text-[11px] text-gray-500">El lector USB escribe el código y presiona Enter solo — igual que aquí. Escanea o digita el código y Enter.</p>
+      </div>
+      <button @click="modalPOS=false" class="text-gray-400 text-2xl leading-none">×</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <input type="text" x-model="scanCode" @keydown.enter="scanAdd()" placeholder="🔍 Escanear código de barras o digitar y Enter…" class="inp ring-o font-mono text-lg" autofocus>
+      <div>
+        <span class="lbl">O toca el producto (simula el escaneo)</span>
+        <div class="grid grid-cols-3 gap-2 mt-1">
+          <template x-for="p in inventario.filter(x=>x.stock>0)" :key="p.codigo">
+            <button @click="addCart(p)" class="btn-ghost rounded-lg p-2 text-left">
+              <div class="text-[11px] font-bold leading-tight" x-text="p.nombre"></div>
+              <div class="text-[10px] text-gray-500 mt-0.5" x-text="'Stock: '+p.stock+' · '+S(p.precio)"></div>
+            </button>
+          </template>
+        </div>
+      </div>
+      <div x-show="cart.length" class="card overflow-hidden">
+        <table class="w-full text-sm">
+          <thead style="background:var(--canvas)"><tr><th class="th">Producto</th><th class="th" style="text-align:center">Cant.</th><th class="th" style="text-align:right">P. unit</th><th class="th" style="text-align:right">Subtotal</th><th class="th"></th></tr></thead>
+          <tbody>
+            <template x-for="(c,idx) in cart" :key="c.codigo">
+              <tr class="border-t" style="border-color:var(--border)">
+                <td class="td font-medium" x-text="c.nombre"></td>
+                <td class="td text-center">
+                  <div class="inline-flex items-center gap-2">
+                    <button @click="c.cant>1?c.cant--:cart.splice(idx,1)" class="btn-ghost rounded w-6 h-6 text-xs font-bold">−</button>
+                    <span class="font-mono font-bold" x-text="c.cant"></span>
+                    <button @click="c.cant<prodByCodigo(c.codigo).stock?c.cant++:showToast('Stock máximo: '+prodByCodigo(c.codigo).stock)" class="btn-ghost rounded w-6 h-6 text-xs font-bold">+</button>
+                  </div>
+                </td>
+                <td class="td text-right font-mono" x-text="S(c.precio)"></td>
+                <td class="td text-right font-mono font-bold" x-text="S(c.precio*c.cant)"></td>
+                <td class="td"><button @click="cart.splice(idx,1)" class="text-gray-400 hover:text-red-600">×</button></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+        <div class="flex justify-between items-center p-3 font-bold" style="background:#111827;color:#fff">
+          <span>TOTAL</span><span class="text-xl font-mono" x-text="S(cartTotal())"></span>
+        </div>
+      </div>
+      <div x-show="cart.length">
+        <div class="flex justify-between items-center">
+          <span class="lbl">Pago — puede dividirse entre métodos</span>
+          <button @click="pagos.push({metodo:'Yape',banco:'',monto:Math.max(0,restante(cartTotal()))})" class="text-[11px] font-bold txt-orange">+ Agregar método</button>
+        </div>
+        <div class="space-y-2 mt-1">
+          <template x-for="(p,idx) in pagos" :key="idx">
+            <div class="flex gap-2 items-center">
+              <select x-model="p.metodo" class="inp ring-o" style="width:140px">
+                <template x-for="m in metodos"><option x-text="m"></option></template>
+              </select>
+              <select x-show="p.metodo==='Transferencia'" x-model="p.banco" class="inp ring-o" style="width:105px">
+                <option>BCP</option><option>Interbank</option><option>BBVA</option>
+              </select>
+              <input type="number" step="0.01" x-model.number="p.monto" placeholder="0.00" class="inp ring-o font-mono flex-1 text-right">
+              <button @click="p.monto=Math.round(((p.monto||0)+restante(cartTotal()))*100)/100" class="btn-ghost rounded px-2 py-1 text-[10px] font-bold" title="Completar con el restante">resto</button>
+              <button x-show="pagos.length>1" @click="pagos.splice(idx,1)" class="text-gray-400 hover:text-red-600 text-lg">×</button>
+            </div>
+          </template>
+        </div>
+        <div class="flex justify-between mt-2 p-2.5 rounded-lg text-sm font-bold" :style="'background:'+(restante(cartTotal())===0?'#ECFDF5':'#FFFBEB')">
+          <span x-text="restante(cartTotal())===0?'✓ Pago completo':'Falta por cubrir'"></span>
+          <span class="font-mono" x-text="S(restante(cartTotal()))"></span>
+        </div>
+      </div>
+    </div>
+    <div class="p-5 border-t flex gap-3" style="border-color:var(--border);background:var(--canvas)">
+      <button @click="modalPOS=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm font-semibold">Cancelar</button>
+      <button @click="confirmarVenta()" :disabled="!cart.length" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold" x-text="cart.length?'Cobrar '+S(cartTotal()):'Agregar productos'"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL PRODUCTO MANUAL ============ -->
+<div x-show="modalProd" @keydown.escape.window="modalProd=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-1">Registrar producto manual</h2>
+    <p class="text-xs text-gray-500 mb-4">Para productos sin código de barras. El sistema genera un código interno; luego puede imprimirse la etiqueta.</p>
+    <div class="space-y-3">
+      <div><span class="lbl">Nombre del producto</span><input type="text" x-model="tProd.nombre" placeholder="Ej.: Perno de culata 12mm" class="inp ring-o mt-1"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><span class="lbl">Marca</span><input type="text" x-model="tProd.marca" placeholder="Genérico" class="inp ring-o mt-1"></div>
+        <div><span class="lbl">Stock inicial</span><input type="number" min="0" x-model.number="tProd.stock" class="inp ring-o font-mono mt-1"></div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><span class="lbl">Mínimo</span><input type="number" min="0" x-model.number="tProd.minimo" class="inp ring-o font-mono mt-1"></div>
+        <div><span class="lbl">Costo (S/)</span><input type="number" step="0.01" x-model.number="tProd.costo" class="inp ring-o font-mono mt-1"></div>
+        <div><span class="lbl">Precio venta</span><input type="number" step="0.01" x-model.number="tProd.precio" class="inp ring-o font-mono mt-1"></div>
+      </div>
+      <div class="p-2.5 rounded-lg text-xs" style="background:var(--soft)">Código interno que se asignará: <b class="font-mono" x-text="'INT-'+String(inventario.filter(p=>p.codigo.startsWith('INT')).length+1).padStart(4,'0')"></b></div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalProd=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="guardarProd()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">Registrar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL ENTRADA DE STOCK ============ -->
+<div x-show="modalEntrada" @keydown.escape.window="modalEntrada=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-1">Entrada de stock</h2>
+    <p class="text-xs text-gray-500 mb-4" x-text="(tEnt.prod?.nombre||'')+' · Stock actual: '+(tEnt.prod?.stock||0)"></p>
+    <div class="space-y-3">
+      <div><span class="lbl">Cantidad que ingresa</span><input type="number" min="1" x-model.number="tEnt.cant" class="inp ring-o font-mono mt-1"></div>
+      <div><span class="lbl">Costo unitario de compra (S/)</span><input type="number" step="0.01" x-model.number="tEnt.costo" :placeholder="tEnt.prod?.precio" class="inp ring-o font-mono mt-1"></div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalEntrada=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="guardarEntrada()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">Registrar entrada</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL COBRO DE ORDEN (pago mixto) ============ -->
+<div x-show="modalCobro" @keydown.escape.window="modalCobro=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-1" x-text="'Cobrar '+(cobroOT?.id||'')"></h2>
+    <p class="text-xs text-gray-500 mb-4" x-text="(cobroOT?.cliente||'')+' — '+(cobroOT?.vehiculo||cobroOT?.pieza||'')"></p>
+    <div class="flex justify-between p-3 rounded-lg font-bold mb-4" style="background:#111827;color:#fff">
+      <span>Total a cobrar</span><span class="font-mono text-lg" x-text="S(cobroOT?.monto||0)"></span>
+    </div>
+    <div class="flex justify-between items-center">
+      <span class="lbl">Pago — puede dividirse (ej. parte Yape, parte efectivo)</span>
+      <button @click="pagos.push({metodo:'Yape',banco:'',monto:Math.max(0,restante(cobroOT?.monto||0))})" class="text-[11px] font-bold txt-orange">+ Método</button>
+    </div>
+    <div class="space-y-2 mt-1">
+      <template x-for="(p,idx) in pagos" :key="idx">
+        <div class="flex gap-2 items-center">
+          <select x-model="p.metodo" class="inp ring-o" style="width:130px">
+            <template x-for="m in metodos"><option x-text="m"></option></template>
+          </select>
+          <select x-show="p.metodo==='Transferencia'" x-model="p.banco" class="inp ring-o" style="width:100px">
+            <option>BCP</option><option>Interbank</option><option>BBVA</option>
+          </select>
+          <input type="number" step="0.01" x-model.number="p.monto" placeholder="0.00" class="inp ring-o font-mono flex-1 text-right">
+          <button @click="p.monto=Math.round(((p.monto||0)+restante(cobroOT?.monto||0))*100)/100" class="btn-ghost rounded px-2 py-1 text-[10px] font-bold">resto</button>
+          <button x-show="pagos.length>1" @click="pagos.splice(idx,1)" class="text-gray-400 hover:text-red-600 text-lg">×</button>
+        </div>
+      </template>
+    </div>
+    <div class="flex justify-between mt-3 p-2.5 rounded-lg text-sm font-bold" :style="'background:'+(restante(cobroOT?.monto||0)===0?'#ECFDF5':'#FFFBEB')">
+      <span x-text="restante(cobroOT?.monto||0)===0?'✓ Pago completo':'Falta por cubrir'"></span>
+      <span class="font-mono" x-text="S(restante(cobroOT?.monto||0))"></span>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalCobro=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="confirmarCobro()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">Cobrar y entregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL CONSUMO DE MATERIAL ============ -->
+<div x-show="modalMat" @keydown.escape.window="modalMat=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-1">Registrar consumo</h2>
+    <p class="text-xs text-gray-500 mb-4" x-text="(tMat.mat?.nombre||'')+' · Stock: '+(tMat.mat?.stock||0)+' '+(tMat.mat?.unidad||'')"></p>
+    <div class="space-y-3">
+      <div>
+        <span class="lbl">Orden de trabajo (opcional)</span>
+        <select x-model="tMat.otId" class="inp ring-o mt-1">
+          <option value="">— Consumo general del taller —</option>
+          <template x-for="o in ots.filter(x=>x.area===tMat.mat?.area&&!['ENTREGADA'].includes(x.estado))" :key="o.id">
+            <option :value="o.id" x-text="o.id+' — '+(o.vehiculo||o.pieza)+' ('+o.maestro+')'"></option>
+          </template>
+        </select>
+        <p class="text-[11px] text-gray-500 mt-1" x-show="tMat.mat?.area==='Tornería'">Si elige una orden, el costo se suma a la orden y se descuenta del 35% del tornero automáticamente.</p>
+      </div>
+      <div>
+        <span class="lbl" x-text="'Cantidad ('+(tMat.mat?.unidad||'')+')'"></span>
+        <input type="number" step="0.1" min="0.1" :max="tMat.mat?.stock" x-model.number="tMat.cant" class="inp ring-o font-mono mt-1">
+      </div>
+      <div class="p-2.5 rounded-lg text-sm font-semibold flex justify-between" style="background:var(--soft)">
+        <span>Costo del consumo</span><span class="font-mono" x-text="S((tMat.cant||0)*(tMat.mat?.costo||0))"></span>
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalMat=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="consumirMat()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">Registrar consumo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL KARDEX ============ -->
+<div x-show="modalKardex" @keydown.escape.window="modalKardex=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 fade-in">
+    <div class="flex justify-between items-start mb-1">
+      <h2 class="text-lg font-bold" x-text="'Kardex — '+(kardexProd?.nombre||'')"></h2>
+      <button @click="modalKardex=false" class="text-gray-400 text-2xl leading-none">×</button>
+    </div>
+    <p class="text-xs text-gray-500 mb-4" x-text="'Código: '+(kardexProd?.codigo||'')+' · Stock actual: '+(kardexProd?.stock||0)+' · Precio: '+S(kardexProd?.precio||0)"></p>
+    <table class="w-full text-sm">
+      <thead><tr class="border-b" style="border-color:var(--border)"><th class="th" style="padding-left:0">Fecha</th><th class="th">Movimiento</th><th class="th" style="text-align:right">Cant.</th><th class="th" style="text-align:right">Precio</th><th class="th">Por</th></tr></thead>
+      <tbody>
+        <template x-for="m in movsInv.filter(x=>x.codigo===kardexProd?.codigo)" :key="m.id">
+          <tr class="border-b" style="border-color:var(--border)">
+            <td class="py-2 text-gray-500" x-text="m.fecha"></td>
+            <td class="py-2"><span class="chip"><span class="dot" :style="'background:'+(m.tipo==='Venta'?'var(--red)':'var(--green)')"></span><span x-text="m.tipo"></span></span></td>
+            <td class="py-2 text-right font-mono font-bold" :class="m.tipo==='Venta'&&'txt-red'" x-text="(m.tipo==='Venta'?'−':'+')+m.cant"></td>
+            <td class="py-2 text-right font-mono" x-text="S(m.precio)"></td>
+            <td class="py-2 text-gray-500 text-xs" x-text="m.por"></td>
+          </tr>
+        </template>
+        <tr x-show="!movsInv.filter(x=>x.codigo===kardexProd?.codigo).length"><td colspan="5" class="py-3 text-center text-gray-400 text-xs">Sin movimientos registrados aún</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div x-show="toast" x-transition class="fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-2xl z-50 text-sm font-semibold text-white" style="background:var(--black)" x-text="toast"></div>
+
+<script>
+function app(){
+  return {
+    view:'login', page:'dashboard', periodo:'Día', tabAt:'Mecánica',
+    sel:null, pin:'', user:null, movilRole:null, movilTab:'ordenes', dispositivo:null, started:false,
+    modalOT:false, modalIngreso:false, modalGasto:false, modalDet:false, modalFin:false,
+    modalPOS:false, modalKardex:false, cart:[], scanCode:'', posMetodo:'Efectivo', posBanco:'', kardexProd:null, tabInv:'disponibles',
+    modalMat:false, tMat:{mat:null,otId:'',cant:1}, matArea:'Todos',
+    modalCobro:false, cobroOT:null, pagos:[],
+    modalProd:false, tProd:{}, modalEntrada:false, tEnt:{prod:null,cant:1,costo:null},
+    toast:'', det:{}, nOT:{items:[]}, tIng:{}, tGas:{}, cierre:{}, otFin:null, obsFin:'', msg:'',
+    metodos:['Efectivo','Yape','Plin','Transferencia'],
+    marcasPortada:[
+      {n:'TOYOTA',svg:'<svg width="34" height="24" viewBox="0 0 60 40"><g fill="none" stroke="#9CA3AF" stroke-width="2.5"><ellipse cx="30" cy="20" rx="27" ry="16"/><ellipse cx="30" cy="20" rx="11" ry="16"/><ellipse cx="30" cy="13" rx="19" ry="6"/></g></svg>'},
+      {n:'KIA',svg:'<svg width="34" height="24" viewBox="0 0 60 40"><ellipse cx="30" cy="20" rx="27" ry="15" fill="none" stroke="#9CA3AF" stroke-width="2.5"/><text x="30" y="26" text-anchor="middle" font-size="15" font-weight="900" font-style="italic" fill="#9CA3AF" font-family="Inter">KIA</text></svg>'},
+      {n:'CHEVROLET',svg:'<svg width="34" height="24" viewBox="0 0 60 40"><path d="M23 13h14v6h15v8H37v6H23v-6H8v-8h15z" fill="none" stroke="#9CA3AF" stroke-width="2.5"/></svg>'},
+      {n:'HYUNDAI',svg:'<svg width="34" height="24" viewBox="0 0 60 40"><ellipse cx="30" cy="20" rx="27" ry="15" fill="none" stroke="#9CA3AF" stroke-width="2.5"/><text x="30" y="27" text-anchor="middle" font-size="18" font-weight="900" font-style="italic" fill="#9CA3AF" font-family="Inter">H</text></svg>'},
+      {n:'NISSAN',svg:'<svg width="26" height="24" viewBox="0 0 48 48"><g fill="none" stroke="#9CA3AF" stroke-width="2.5"><circle cx="24" cy="24" r="20"/><path d="M2 24h44"/></g></svg>'},
+      {n:'FORD',svg:'<svg width="36" height="24" viewBox="0 0 64 40"><ellipse cx="32" cy="20" rx="30" ry="15" fill="none" stroke="#9CA3AF" stroke-width="2.5"/><text x="32" y="26" text-anchor="middle" font-size="14" font-weight="800" font-style="italic" fill="#9CA3AF" font-family="Georgia">Ford</text></svg>'},
+      {n:'MAZDA',svg:'<svg width="26" height="24" viewBox="0 0 48 48"><g fill="none" stroke="#9CA3AF" stroke-width="2.5"><circle cx="24" cy="24" r="20"/><path d="M10 32c5-14 23-14 28 0M24 12v10"/></g></svg>'},
+      {n:'VOLKSWAGEN',svg:'<svg width="26" height="24" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="#9CA3AF" stroke-width="2.5"/><text x="24" y="30" text-anchor="middle" font-size="14" font-weight="900" fill="#9CA3AF" font-family="Inter">VW</text></svg>'},
+      {n:'SUZUKI',svg:'<svg width="26" height="24" viewBox="0 0 48 48"><text x="24" y="34" text-anchor="middle" font-size="30" font-weight="900" font-style="italic" fill="#9CA3AF" font-family="Inter">S</text></svg>'},
+      {n:'MITSUBISHI',svg:'<svg width="26" height="24" viewBox="0 0 48 44" fill="#9CA3AF"><path d="M24 3l6.5 11L24 25l-6.5-11z"/><path d="M4 41l6.5-11h13L17 41z"/><path d="M44 41H31l-6.5-11h13z"/></svg>'},
+    ],
+    materiales:[
+      {id:1,area:'Tornería',nombre:'Barra de acero 1045',unidad:'kg',stock:42,minimo:15,costo:9.5},
+      {id:2,area:'Tornería',nombre:'Bocina de bronce',unidad:'unid.',stock:6,minimo:4,costo:22},
+      {id:3,area:'Tornería',nombre:'Soldadura supercito',unidad:'kg',stock:3,minimo:2,costo:18},
+      {id:4,area:'Tornería',nombre:'Cuchillas de torno',unidad:'unid.',stock:8,minimo:4,costo:15},
+      {id:5,area:'Mecánica',nombre:'Aceite a granel 20W-50',unidad:'L',stock:18,minimo:10,costo:14},
+      {id:6,area:'Mecánica',nombre:'Grasa multiuso',unidad:'kg',stock:5,minimo:3,costo:16},
+      {id:7,area:'Mecánica',nombre:'Waype / trapos',unidad:'kg',stock:7,minimo:4,costo:4},
+      {id:8,area:'Mecánica',nombre:'Silicona / sellador',unidad:'unid.',stock:4,minimo:3,costo:12},
+    ],
+    tareas:[
+      {id:1,tarea:'Limpieza del baño',frecuencia:'Diaria (rotativa)',dia:'Hoy',responsable:'C. Andrade',hecho:false},
+      {id:2,tarea:'Barrido general del taller',frecuencia:'Diaria — fin de jornada',dia:'Hoy',responsable:'Todos',hecho:false},
+      {id:3,tarea:'Orden de herramientas del puesto',frecuencia:'Diaria — cierre',dia:'Hoy',responsable:'Cada técnico',hecho:false},
+      {id:4,tarea:'Revisión y engrase de máquinas',frecuencia:'Semanal',dia:'Lunes',responsable:'M. Villacorta',hecho:true},
+      {id:5,tarea:'Sacar residuos y chatarra',frecuencia:'2 veces por semana',dia:'Mié y Sáb',responsable:'D. Salazar',hecho:false},
+      {id:6,tarea:'Conteo rápido de inventario',frecuencia:'Semanal',dia:'Viernes',responsable:'M. F. Ríos',hecho:false},
+      {id:7,tarea:'Limpieza profunda del taller',frecuencia:'Semanal',dia:'Sábado por la tarde',responsable:'Todos',hecho:false},
+    ],
+
+    personas:[
+      {id:1,nombre:'Sr. Director',ini:'DR',cargo:'Administrador · Dueño',rol:'admin'},
+      {id:2,nombre:'M. F. Ríos',ini:'MR',cargo:'Asesora de Servicio',rol:'caja'},
+      {id:3,nombre:'L. Ramírez',ini:'LR',cargo:'Técnico Automotriz',rol:'mecanico'},
+      {id:4,nombre:'C. Andrade',ini:'CA',cargo:'Técnico Automotriz',rol:'mecanico'},
+      {id:5,nombre:'M. Villacorta',ini:'MV',cargo:'Técnico en Tornería',rol:'tornero'},
+      {id:6,nombre:'D. Salazar',ini:'DS',cargo:'Técnico en Tornería',rol:'tornero'},
+    ],
+    frases:[
+      'El trabajo bien hecho es la mejor carta de presentación.',
+      'Calidad en cada detalle: así se gana la confianza del cliente.',
+      'Hoy es un buen día para hacer un gran trabajo.',
+      'Un taller ordenado es un taller productivo.',
+      'Cada cliente satisfecho trae a dos más.',
+      'La puntualidad también es parte de la calidad.',
+      'Lo que se mide, mejora. Lo que se mejora, crece.',
+      'La precisión no es un acto, es un hábito.',
+      'El cliente no compra un arreglo: compra tranquilidad.',
+      'Hazlo bien a la primera y no lo harás dos veces.',
+      'Las herramientas en su lugar hacen al maestro.',
+      'Un diagnóstico honesto vale más que una venta rápida.',
+      'La seguridad primero: ningún trabajo vale una lesión.',
+      'El detalle que nadie ve es el que el cliente siente.',
+      'Trabajo en equipo: el taller entero firma cada entrega.',
+      'La constancia convierte al aprendiz en maestro.',
+      'Cuida la máquina y la máquina cuidará tu trabajo.',
+      'Un buen día empieza llegando a tiempo.',
+      'La reputación se construye trabajo a trabajo.',
+      'Pregunta cuando dudes: cuesta menos que un error.',
+      'La excelencia es la suma de pequeños cuidados.',
+    ],
+    mensajes:[
+      {id:1,de:'Sr. Director',texto:'Buen día equipo. Hoy llega el cliente del Sportage a las 10, atención con eso.',hora:'07:55'},
+      {id:2,de:'L. Ramírez',texto:'Recibido. El Corolla ya está en proceso, termino antes del mediodía.',hora:'08:20'},
+      {id:3,de:'M. F. Ríos',texto:'Llegaron los filtros Fram que faltaban, ya ingresados al inventario.',hora:'09:10'},
+      {id:4,de:'M. Villacorta',texto:'El cigüeñal del Sr. Mendoza queda listo hoy a las 4pm 👍',hora:'10:05'},
+    ],
+    clientes:[
+      {dni:'45678912',nombre:'Juan Paredes Sánchez',telefono:'987 654 321',visitas:8,vehiculos:[{placa:'ABC-123',marca:'Toyota',modelo:'Corolla'}]},
+      {dni:'40123456',nombre:'María Gonzales Torres',telefono:'998 877 665',visitas:3,vehiculos:[{placa:'DEF-456',marca:'Chevrolet',modelo:'Aveo'}]},
+      {dni:'42987654',nombre:'Carlos Mendoza Ruiz',telefono:'965 432 198',visitas:12,vehiculos:[{placa:'GHI-789',marca:'Kia',modelo:'Sportage'}]},
+    ],
+    ots:[
+      {id:'OTI-M-0041',fecha:'19/07',cliente:'Juan Paredes Sánchez',vehiculo:'Corolla · ABC-123',marca:'Toyota',area:'Mecánica',maestro:'L. Ramírez',estado:'EN PROCESO',monto:445,trabajo:'Cambio de aceite y filtros; Revisión de frenos',entrega:'Hoy · 5:00 pm'},
+      {id:'OTI-M-0042',fecha:'19/07',cliente:'María Gonzales Torres',vehiculo:'Aveo · DEF-456',marca:'Chevrolet',area:'Mecánica',maestro:'C. Andrade',estado:'APROBADA',monto:680,trabajo:'Cambio de pastillas; Rectificado de discos',entrega:'Mañana'},
+      {id:'OTI-T-0043',fecha:'19/07',cliente:'Carlos Mendoza Ruiz',pieza:'Cigüeñal',area:'Tornería',maestro:'M. Villacorta',estado:'EN PROCESO',monto:480,mat:60,trabajo:'Rectificado de cigüeñal',entrega:'Hoy · 5:00 pm'},
+      {id:'OTI-M-0044',fecha:'19/07',cliente:'Ana Vera Campos',vehiculo:'Sportage · JKL-321',marca:'Kia',area:'Mecánica',maestro:'L. Ramírez',estado:'INGRESO',monto:1520,trabajo:'Mantenimiento de 20 mil km',entrega:''},
+      {id:'OTI-T-0045',fecha:'19/07',cliente:'Roberto Silva Peña',pieza:'Eje trasero',area:'Tornería',maestro:'D. Salazar',estado:'POR COBRAR',monto:285,mat:35,trabajo:'Torneado de eje trasero',entrega:'Hoy · 3:00 pm'},
+      {id:'OTI-M-0038',fecha:'03/07',cliente:'Juan Paredes Sánchez',vehiculo:'Corolla · ABC-123',marca:'Toyota',area:'Mecánica',maestro:'L. Ramírez',estado:'ENTREGADA',monto:320,trabajo:'Revisión general',entrega:'04/07'},
+    ],
+    otSeq:{M:46,T:45}, ventaSeq:24,
+    sugerencias:[
+      {id:1,ot:'OTI-T-0045',de:'D. Salazar',texto:'Su eje quedó torneado y balanceado. Se recomienda revisar los rodamientos en el próximo mantenimiento.',estado:'pendiente'},
+    ],
+    ingresos:[
+      {id:1,desc:'Cobro OTI-M-0038 — Toyota Corolla',area:'Mecánica',metodo:'Efectivo',banco:'',cant:1,total:320,hora:'09:15'},
+      {id:2,desc:'OSI-R-0021 · Filtro de aceite Fram',area:'Repuestos',metodo:'Efectivo',banco:'',cant:2,total:56,hora:'10:22'},
+      {id:3,desc:'OSI-R-0022 · Pastillas de freno Bosch',area:'Repuestos',metodo:'Yape',banco:'',cant:3,total:135,hora:'13:05'},
+      {id:4,desc:'Abono OTI-M-0041',area:'Mecánica',metodo:'Efectivo',banco:'',cant:1,total:240,hora:'15:30'},
+      {id:5,desc:'OSI-R-0023 · Bujías NGK iridium',area:'Repuestos',metodo:'Plin',banco:'',cant:4,total:100,hora:'16:10'},
+    ],
+    gastos:[
+      {id:1,desc:'Empaque de motor',categoria:'Compra de repuestos e insumos',area:'Mecánica',metodo:'Efectivo',total:95,hora:'10:00',trabajador:''},
+      {id:2,desc:'Almuerzo del personal',categoria:'Subvención alimentaria',area:'General',metodo:'Efectivo',total:60,hora:'12:30',trabajador:'Todos'},
+      {id:3,desc:'Cuota préstamo Sra. Ofelia',categoria:'Pago de préstamo (prestamista)',area:'General',metodo:'Efectivo',total:120,hora:'14:15',trabajador:''},
+      {id:4,desc:'Cuchillas para torno',categoria:'Compra de repuestos e insumos',area:'Tornería',metodo:'Yape',total:85,hora:'15:00',trabajador:''},
+      {id:5,desc:'Adelanto de sueldo',categoria:'Adelanto de sueldo a personal',area:'General',metodo:'Efectivo',total:50,hora:'11:20',trabajador:'D. Salazar'},
+    ],
+    inventario:[
+      {codigo:'7501234567890',nombre:'Filtro de aceite universal',marca:'Fram',stock:2,minimo:5,precio:28},
+      {codigo:'7501234567891',nombre:'Pastillas de freno delanteras',marca:'Bosch',stock:1,minimo:3,precio:95},
+      {codigo:'7501234567892',nombre:'Aceite de motor 20W-50',marca:'Mobil',stock:4,minimo:6,precio:75},
+      {codigo:'7501234567893',nombre:'Bujía iridium',marca:'NGK',stock:24,minimo:8,precio:42},
+      {codigo:'7501234567894',nombre:'Correa de distribución',marca:'Gates',stock:6,minimo:3,precio:150},
+      {codigo:'7501234567895',nombre:'Amortiguador delantero',marca:'Monroe',stock:8,minimo:4,precio:220},
+      {codigo:'7501234567896',nombre:'Líquido de frenos DOT4',marca:'Wagner',stock:0,minimo:4,precio:35},
+      {codigo:'7501234567897',nombre:'Refrigerante verde 1L',marca:'Prestone',stock:0,minimo:6,precio:28},
+    ],
+    movsInv:[
+      {id:1,codigo:'7501234567890',fecha:'15/07',tipo:'Ingreso',cant:10,precio:18,por:'M. F. Ríos'},
+      {id:2,codigo:'7501234567890',fecha:'17/07',tipo:'Venta',cant:6,precio:28,por:'M. F. Ríos'},
+      {id:3,codigo:'7501234567890',fecha:'19/07',tipo:'Venta',cant:2,precio:28,por:'M. F. Ríos'},
+      {id:4,codigo:'7501234567896',fecha:'12/07',tipo:'Ingreso',cant:8,precio:22,por:'M. F. Ríos'},
+      {id:5,codigo:'7501234567896',fecha:'16/07',tipo:'Venta',cant:5,precio:35,por:'M. F. Ríos'},
+      {id:6,codigo:'7501234567896',fecha:'18/07',tipo:'Venta',cant:3,precio:35,por:'M. F. Ríos'},
+      {id:7,codigo:'7501234567891',fecha:'19/07',tipo:'Venta',cant:3,precio:95,por:'M. F. Ríos'},
+    ],
+    empleados:[
+      {id:1,nombre:'L. Ramírez',cargo:'Técnico Automotriz',baseSem:350,entrada:'08:12',salida:'',atraso:12,semana:['08:03','08:00','08:15 +15','07:58','08:12 +12','08:12 +12'],tardanzasSem:39,faltasSem:0},
+      {id:2,nombre:'C. Andrade',cargo:'Técnico Automotriz',baseSem:350,entrada:'08:07',salida:'',atraso:7,semana:['07:55','F','08:00','08:07 +7','07:59','08:07 +7'],tardanzasSem:14,faltasSem:1},
+      {id:3,nombre:'M. Villacorta',cargo:'Técnico en Tornería',baseSem:0,entrada:'07:58',salida:'',atraso:0,semana:['07:50','07:55','07:58','07:52','07:56','07:58'],tardanzasSem:0,faltasSem:0},
+      {id:4,nombre:'D. Salazar',cargo:'Técnico en Tornería',baseSem:0,entrada:'07:55',salida:'',atraso:0,semana:['07:58','07:52','08:05 +5','07:55','07:50','07:55'],tardanzasSem:5,faltasSem:0},
+      {id:5,nombre:'M. F. Ríos',cargo:'Asesora de Servicio',baseSem:300,entrada:'07:50',salida:'',atraso:0,semana:['07:45','07:50','07:48','07:52','07:49','07:50'],tardanzasSem:0,faltasSem:0},
+    ],
+    flujo:{
+      'Día':[
+        {p:'Dom 19 jul (hoy)',i:851,e:360,ac:491,c:false},{p:'Sáb 18 jul',i:1420,e:485,ac:935,c:true},
+        {p:'Vie 17 jul',i:980,e:310,ac:670,c:true},{p:'Jue 16 jul',i:1250,e:520,ac:730,c:true},
+        {p:'Mié 15 jul',i:890,e:295,ac:595,c:true},{p:'Mar 14 jul',i:1105,e:410,ac:695,c:true},
+      ],
+      'Semana':[
+        {p:'Semana 13–19 jul',i:6496,e:2380,ac:4116,c:false},{p:'Semana 6–12 jul',i:6120,e:2150,ac:3970,c:true},
+        {p:'Semana 29 jun–5 jul',i:5890,e:2490,ac:3400,c:true},{p:'Semana 22–28 jun',i:5420,e:1980,ac:3440,c:true},
+      ],
+      'Mes':[
+        {p:'Julio 2026 (parcial)',i:16890,e:6120,ac:10770,c:false},{p:'Junio 2026',i:28060,e:10240,ac:17820,c:true},
+        {p:'Mayo 2026',i:25400,e:9850,ac:15550,c:true},{p:'Abril 2026',i:24100,e:9200,ac:14900,c:true},
+      ],
+    },
+
+    logo(){return document.getElementById('logo-dark').innerHTML},
+    S(n){return 'S/ '+(Number(n)||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')},
+    hoy(){return new Date().toLocaleDateString('es-PE',{weekday:'short',day:'numeric',month:'short'})},
+    hoyLargo(){return new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})},
+    fraseDia(){return this.frases[new Date().getDate()%this.frases.length]},
+    saludo(){const h=new Date().getHours();return h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'},
+    totalIngresos(){return this.ingresos.reduce((s,i)=>s+i.total,0)},
+    totalGastos(){return this.gastos.reduce((s,g)=>s+g.total,0)},
+    ingArea(a){return this.ingresos.filter(i=>i.area===a).reduce((s,i)=>s+i.total,0)},
+    ingMetodo(m){return this.ingresos.filter(i=>i.metodo===m).reduce((s,i)=>s+i.total,0)},
+    ingAreaMetodo(a,m){return this.ingresos.filter(i=>i.area===a&&i.metodo===m).reduce((s,i)=>s+i.total,0)},
+    gastoArea(a){return this.gastos.filter(g=>g.area===a).reduce((s,g)=>s+g.total,0)},
+    saldoMetodo(m){return this.ingMetodo(m)-this.gastos.filter(g=>g.metodo===m).reduce((s,g)=>s+g.total,0)},
+    eColor(e){return {'INGRESO':'#9CA3AF','COTIZACIÓN':'#B45309','APROBADA':'#2563EB','EN PROCESO':'#F26522','POR COBRAR':'#DC1F26','TERMINADA':'#059669','ENTREGADA':'#111827'}[e]||'#9CA3AF'},
+    difTotal(){let d=0;this.metodos.forEach(m=>{if(this.cierre[m]!==undefined&&this.cierre[m]!=='')d+=this.cierre[m]-this.saldoMetodo(m)});return d},
+    porCobrar(){return this.ots.filter(o=>o.estado==='POR COBRAR')},
+    miEmpleado(){return this.empleados.find(e=>e.nombre===this.user?.nombre)},
+    misOts(){return this.ots.filter(o=>o.maestro===(this.user?.nombre||'')&&o.fecha==='19/07')},
+    prodHoy(n){return this.ots.filter(o=>o.area==='Tornería'&&o.maestro===n&&o.estado==='ENTREGADA'&&o.fecha==='19/07').reduce((s,o)=>s+o.monto,0)},
+    matHoy(n){return this.ots.filter(o=>o.area==='Tornería'&&o.maestro===n&&o.estado==='ENTREGADA'&&o.fecha==='19/07').reduce((s,o)=>s+(o.mat||0),0)},
+    sug35(n){return Math.max(0,(this.prodHoy(n)-this.matHoy(n))*0.35)},
+    adelantosDe(n){return this.gastos.filter(g=>g.categoria==='Adelanto de sueldo a personal'&&g.trabajador===n).reduce((s,g)=>s+g.total,0)},
+    pagosProdDe(n){return this.gastos.filter(g=>g.categoria==='Pago de producción (35% torneros)'&&g.trabajador===n).reduce((s,g)=>s+g.total,0)},
+    netoSemana(e){return Math.max(0,(e.baseSem||0)+(e.cargo.includes('Tornería')?this.sug35(e.nombre):0)-this.adelantosDe(e.nombre)-(e.tardanzasSem*0.5+e.faltasSem*58))},
+    abrirConsumo(m){this.tMat={mat:m,otId:'',cant:1};this.modalMat=true},
+    consumirMat(){
+      const m=this.tMat.mat; if(!m||!this.tMat.cant)return;
+      const cant=Math.min(this.tMat.cant,m.stock);
+      m.stock=Math.round((m.stock-cant)*10)/10;
+      const costo=cant*m.costo;
+      if(this.tMat.otId){
+        const ot=this.ots.find(o=>o.id===this.tMat.otId);
+        if(ot){ot.mat=(ot.mat||0)+costo}
+      }
+      this.modalMat=false;
+      this.showToast('Consumo registrado: '+cant+' '+m.unidad+' de '+m.nombre+' ('+this.S(costo)+')'+(this.tMat.otId?' — cargado a '+this.tMat.otId:''));
+      if(m.stock<=m.minimo)this.showToast('⚠️ '+m.nombre+' bajo stock mínimo — agregado a reposición');
+    },
+    tareasHoyDe(n){return this.tareas.filter(t=>t.responsable===n||t.responsable==='Todos'||t.responsable==='Cada técnico')},
+    actividad(){
+      return [
+        ...this.ingresos.map(i=>({id:'i'+i.id,hora:i.hora,desc:i.desc,det:i.metodo+(i.banco?' '+i.banco:''),total:i.total,neg:false})),
+        ...this.gastos.map(g=>({id:'g'+g.id,hora:g.hora,desc:g.desc,det:g.trabajador?g.categoria+' · '+g.trabajador:g.categoria,total:g.total,neg:true}))
+      ].sort((a,b)=>b.hora.localeCompare(a.hora));
+    },
+    prodByCodigo(c){return this.inventario.find(p=>p.codigo===c)},
+    reposicion(){return this.inventario.filter(p=>p.stock<=p.minimo)},
+    abrirPOS(){this.cart=[];this.scanCode='';this.pagos=[{metodo:'Efectivo',banco:'',monto:0}];this.modalPOS=true},
+    abrirKardex(p){this.kardexProd=p;this.modalKardex=true},
+    abrirNuevoProd(){this.tProd={nombre:'',marca:'',stock:0,minimo:2,costo:null,precio:null};this.modalProd=true},
+    guardarProd(){
+      if(!this.tProd.nombre||!this.tProd.precio)return;
+      const codigo='INT-'+String(this.inventario.filter(p=>p.codigo.startsWith('INT')).length+1).padStart(4,'0');
+      this.inventario.push({codigo,nombre:this.tProd.nombre,marca:this.tProd.marca||'Genérico',stock:this.tProd.stock||0,minimo:this.tProd.minimo||2,precio:this.tProd.precio});
+      if(this.tProd.stock>0)this.movsInv.push({id:Date.now(),codigo,fecha:'19/07',tipo:'Ingreso',cant:this.tProd.stock,precio:this.tProd.costo||0,por:this.user?.nombre||'Caja'});
+      this.modalProd=false;
+      this.showToast('Producto registrado con código interno '+codigo+'. Puede imprimir su etiqueta.');
+    },
+    abrirEntrada(p){this.tEnt={prod:p,cant:1,costo:null};this.modalEntrada=true},
+    guardarEntrada(){
+      const p=this.tEnt.prod; if(!p||!this.tEnt.cant)return;
+      p.stock+=this.tEnt.cant;
+      this.movsInv.push({id:Date.now(),codigo:p.codigo,fecha:'19/07',tipo:'Ingreso',cant:this.tEnt.cant,precio:this.tEnt.costo||0,por:this.user?.nombre||'Caja'});
+      this.modalEntrada=false;
+      this.showToast('Entrada registrada: +'+this.tEnt.cant+' de '+p.nombre+'. Stock: '+p.stock);
+    },
+    scanAdd(){
+      const code=this.scanCode.trim();
+      if(!code)return;
+      const p=this.inventario.find(x=>x.codigo===code||x.nombre.toLowerCase().includes(code.toLowerCase()));
+      if(!p){this.showToast('Producto no encontrado: '+code);this.scanCode='';return}
+      if(p.stock===0){this.showToast('⚠️ '+p.nombre+' está AGOTADO');this.scanCode='';return}
+      this.addCart(p);this.scanCode='';
+    },
+    addCart(p){
+      const ex=this.cart.find(c=>c.codigo===p.codigo);
+      if(ex){if(ex.cant<p.stock)ex.cant++;else this.showToast('Stock máximo: '+p.stock)}
+      else this.cart.push({codigo:p.codigo,nombre:p.nombre,precio:p.precio,cant:1});
+      this.beep();
+    },
+    cartTotal(){return this.cart.reduce((s,c)=>s+c.precio*c.cant,0)},
+    restante(total){return Math.round((total-this.pagos.reduce((s,p)=>s+(p.monto||0),0))*100)/100},
+    confirmarVenta(){
+      if(!this.cart.length)return;
+      if(this.restante(this.cartTotal())!==0){this.showToast('El pago no cubre el total — revise los montos');return}
+      const hora=new Date().toTimeString().slice(0,5);
+      let agotados=[];
+      this.cart.forEach(c=>{
+        const p=this.prodByCodigo(c.codigo);
+        p.stock=Math.max(0,p.stock-c.cant);
+        this.movsInv.push({id:Date.now()+Math.random(),codigo:c.codigo,fecha:'19/07',tipo:'Venta',cant:c.cant,precio:c.precio,por:this.user?.nombre||'Caja'});
+        if(p.stock===0)agotados.push(p.nombre);
+      });
+      this.ventaSeq++;
+      const desc='OSI-R-'+String(this.ventaSeq).padStart(4,'0')+' · '+this.cart.map(c=>c.cant+'× '+c.nombre).join(', ');
+      const cantTot=this.cart.reduce((s,c)=>s+c.cant,0);
+      const multi=this.pagos.filter(p=>p.monto>0).length>1;
+      this.pagos.filter(p=>p.monto>0).forEach((p,i)=>{
+        this.ingresos.unshift({id:Date.now()+i,desc:desc+(multi?' — parte '+p.metodo:''),area:'Repuestos',metodo:p.metodo,banco:p.metodo==='Transferencia'?(p.banco||'BCP'):'',cant:i===0?cantTot:1,total:p.monto,hora});
+      });
+      const total=this.cartTotal();
+      this.modalPOS=false;this.cart=[];
+      this.showToast('Venta cobrada: '+this.S(total)+(multi?' (pago dividido)':'')+'. Stock actualizado.'+(agotados.length?' ⚠️ AGOTADO: '+agotados.join(', '):''));
+    },
+    abrirCobro(ot){this.cobroOT=ot;this.pagos=[{metodo:'Efectivo',banco:'',monto:ot.monto}];this.modalCobro=true},
+    confirmarCobro(){
+      const ot=this.cobroOT; if(!ot)return;
+      if(this.restante(ot.monto)!==0){this.showToast('El pago no cubre el total — revise los montos');return}
+      const hora=new Date().toTimeString().slice(0,5);
+      const multi=this.pagos.filter(p=>p.monto>0).length>1;
+      this.pagos.filter(p=>p.monto>0).forEach((p,i)=>{
+        this.ingresos.unshift({id:Date.now()+i,desc:'Cobro '+ot.id+' — '+(ot.vehiculo||ot.pieza)+(multi?' — parte '+p.metodo:''),area:ot.area,metodo:p.metodo,banco:p.metodo==='Transferencia'?(p.banco||'BCP'):'',cant:1,total:p.monto,hora});
+      });
+      ot.estado='ENTREGADA';
+      this.modalCobro=false;
+      this.showToast('Cobrado '+this.S(ot.monto)+(multi?' (pago dividido)':'')+'. Orden entregada — cliente conforme.');
+    },
+    pickProd(){
+      const p=this.prodByCodigo(this.tIng.codigo);
+      if(p){this.tIng.desc=p.nombre;this.tIng.unit=p.precio;this.tIng.cant=1}
+    },
+
+    beep(){
+      try{
+        const ctx=new (window.AudioContext||window.webkitAudioContext)();
+        [0,0.18].forEach((t,i)=>{
+          const o=ctx.createOscillator(),g=ctx.createGain();
+          o.connect(g);g.connect(ctx.destination);
+          o.frequency.value=i?1180:880;o.type='sine';
+          g.gain.setValueAtTime(.25,ctx.currentTime+t);
+          g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.15);
+          o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+.16);
+        });
+      }catch(e){}
+    },
+
+    pinPress(n){
+      if(this.pin.length>=4)return;
+      this.pin+=n;
+      if(this.pin.length===4){
+        setTimeout(()=>{
+          this.user=this.sel;
+          const r=this.sel.rol;
+          this.sel=null;this.pin='';
+          if(r==='caja'){this.dispositivo='elegir';return}
+          if(r==='admin'){this.view='web';this.page='dashboard'}
+          else{this.movilRole=r;this.movilTab='ordenes';this.view='movil'}
+          this.showToast(this.saludo()+', '+this.user.nombre.split(' ')[0]+'. '+this.fraseDia());
+        },250);
+      }
+    },
+    entrarWeb(){this.dispositivo=null;this.view='web';this.page='dashboard';this.showToast(this.saludo()+', '+this.user.nombre.split(' ')[0]+'. '+this.fraseDia())},
+    entrarMovil(){this.dispositivo=null;this.movilRole='caja';this.movilTab='ordenes';this.view='movil';this.showToast(this.saludo()+', '+this.user.nombre.split(' ')[0])},
+    logout(){this.view='login';this.user=null;this.sel=null;this.pin='';this.movilRole=null;this.dispositivo=null;this.started=false},
+    movilNombre(){
+      if(this.movilRole==='dueno')return 'Dirección — Negocio en vivo';
+      return this.user?this.user.nombre+' — '+this.user.cargo:'';
+    },
+    otsMovil(){
+      if(this.movilRole==='mecanico')return this.ots.filter(o=>o.area==='Mecánica'&&['INGRESO','APROBADA','EN PROCESO','POR COBRAR'].includes(o.estado)&&o.maestro===(this.user?.nombre||''));
+      if(this.movilRole==='tornero')return this.ots.filter(o=>o.area==='Tornería'&&['INGRESO','APROBADA','EN PROCESO','POR COBRAR'].includes(o.estado)&&o.maestro===(this.user?.nombre||''));
+      return [];
+    },
+    openNuevaOT(){this.nOT={area:'Mecánica',areaFija:false,desdeMovil:false,dni:'',nombre:'',placa:'',vehiculoTxt:'',items:[{t:'',p:null}],pieza:'',entTipo:'hoy',entHora:'En 2 horas',entFecha:'',maestro:''};this.modalOT=true},
+    openNuevaOTMovil(){
+      const area=this.movilRole==='mecanico'?'Mecánica':'Tornería';
+      this.nOT={area,areaFija:true,desdeMovil:true,dni:'',nombre:'',placa:'',vehiculoTxt:'',items:[{t:'',p:null}],pieza:'',entTipo:'hoy',entHora:'En 2 horas',entFecha:'',maestro:this.user?.nombre||''};
+      this.modalOT=true;
+    },
+    lookupDNI(){
+      this.nOT.nombre='';this.nOT.vehiculoTxt='';
+      if(this.nOT.dni.length===8){
+        const c=this.clientes.find(x=>x.dni===this.nOT.dni);
+        if(c){this.nOT.nombre=c.nombre;if(c.vehiculos[0]){this.nOT.placa=c.vehiculos[0].placa;this.nOT.vehiculoTxt=c.vehiculos[0].marca+' '+c.vehiculos[0].modelo+' · '+c.vehiculos[0].placa}}
+        else this.nOT.nombre='(Nuevo cliente — consultado en RENIEC)';
+      }
+    },
+    lookupPlaca(){
+      if(this.nOT.placa.length>=6){
+        for(const c of this.clientes)for(const v of c.vehiculos)
+          if(v.placa.toLowerCase()===this.nOT.placa.toLowerCase()){this.nOT.dni=c.dni;this.lookupDNI();return}
+      }
+    },
+    guardarOT(){
+      const pfx=this.nOT.area==='Mecánica'?'M':'T';
+      this.otSeq[pfx]++;
+      const id='OTI-'+pfx+'-'+String(this.otSeq[pfx]).padStart(4,'0');
+      const trabajos=this.nOT.items.filter(i=>i.t).map(i=>i.t).join('; ');
+      const total=this.nOT.items.reduce((s,i)=>s+(i.p||0),0);
+      this.ots.unshift({id,fecha:'19/07',cliente:this.nOT.nombre||'Cliente por registrar',
+        vehiculo:this.nOT.area==='Mecánica'?(this.nOT.vehiculoTxt||this.nOT.placa):null,
+        pieza:this.nOT.area==='Tornería'?(this.nOT.pieza||'Pieza'):null, area:this.nOT.area,
+        maestro:this.nOT.maestro||(this.nOT.desdeMovil?this.user?.nombre:'Por asignar'),
+        estado:'INGRESO', monto:total, trabajo:trabajos||'Por definir',
+        entrega:this.nOT.entTipo==='hoy'?('Hoy · '+(this.nOT.entHora||'fin del día')):this.nOT.entTipo==='manana'?'Mañana':(this.nOT.entFecha||'Por definir')});
+      this.modalOT=false;
+      this.showToast(this.nOT.desdeMovil?'Orden '+id+' registrada desde el móvil — guardada en la base de datos central':'Orden '+id+' registrada');
+    },
+    verOT(ot){this.det=ot;this.modalDet=true},
+    abrirTerminar(ot){this.otFin=ot;this.obsFin='';this.modalFin=true},
+    terminarTrabajo(){
+      this.otFin.estado='POR COBRAR';
+      if(this.obsFin.trim())this.sugerencias.push({id:Date.now(),ot:this.otFin.id,de:this.user?.nombre||'Técnico',texto:this.obsFin.trim(),estado:'pendiente'});
+      this.modalFin=false;
+      this.beep();
+      this.showToast('Trabajo finalizado correctamente. Caja ha sido notificada — puede continuar con su siguiente orden.');
+    },
+    enviarMsg(){
+      if(!this.msg.trim())return;
+      this.mensajes.push({id:Date.now(),de:this.user?.nombre||'Yo',texto:this.msg.trim(),hora:new Date().toTimeString().slice(0,5)});
+      this.msg='';
+    },
+    guardarIngreso(){
+      if(!this.tIng.desc||!this.tIng.unit)return;
+      if(this.tIng.area==='Repuestos'&&this.tIng.codigo){
+        const p=this.prodByCodigo(this.tIng.codigo);
+        const cant=Math.min(this.tIng.cant||1,p.stock);
+        p.stock=Math.max(0,p.stock-cant);
+        this.movsInv.push({id:Date.now(),codigo:p.codigo,fecha:'19/07',tipo:'Venta',cant,precio:this.tIng.unit,por:this.user?.nombre||'Caja'});
+        if(p.stock===0)this.showToast('⚠️ '+p.nombre+' quedó AGOTADO');
+      }
+      this.ingresos.unshift({id:Date.now(),desc:this.tIng.desc,area:this.tIng.area||'Mecánica',metodo:this.tIng.metodo||'Efectivo',banco:this.tIng.metodo==='Transferencia'?(this.tIng.banco||'BCP'):'',cant:this.tIng.cant||1,total:(this.tIng.cant||1)*(this.tIng.unit||0),hora:new Date().toTimeString().slice(0,5)});
+      this.modalIngreso=false;this.tIng={cant:1,metodo:'Efectivo'};this.showToast('Ingreso registrado');
+    },
+    guardarGasto(){
+      if(!this.tGas.desc||!this.tGas.total)return;
+      this.gastos.unshift({id:Date.now(),desc:this.tGas.desc,categoria:this.tGas.categoria||'Otros gastos operativos',area:this.tGas.area||'General',metodo:this.tGas.metodo||'Efectivo',total:this.tGas.total,hora:new Date().toTimeString().slice(0,5),trabajador:this.tGas.trabajador||''});
+      this.modalGasto=false;this.tGas={metodo:'Efectivo',area:'General',categoria:'Compra de repuestos e insumos'};this.showToast('Egreso registrado');
+    },
+    confirmarCierre(){this.save();this.showToast('Cierre registrado y guardado. La caja quedó bloqueada y alimenta el flujo de caja.');setTimeout(()=>this.page='dashboard',1600)},
+    save(){
+      try{
+        const d={ots:this.ots,ingresos:this.ingresos,gastos:this.gastos,inventario:this.inventario,materiales:this.materiales,movsInv:this.movsInv,sugerencias:this.sugerencias,tareas:this.tareas,otSeq:this.otSeq,ventaSeq:this.ventaSeq,mensajes:this.mensajes,clientes:this.clientes};
+        localStorage.setItem('proauto_datos',JSON.stringify(d));
+      }catch(e){}
+    },
+    load(){
+      try{
+        const raw=localStorage.getItem('proauto_datos');
+        if(!raw)return;
+        const d=JSON.parse(raw);
+        ['ots','ingresos','gastos','inventario','materiales','movsInv','sugerencias','tareas','otSeq','ventaSeq','mensajes','clientes'].forEach(k=>{if(d[k]!==undefined)this[k]=d[k]});
+      }catch(e){}
+    },
+    backup(){
+      const d=localStorage.getItem('proauto_datos')||'{}';
+      const blob=new Blob([d],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='proauto-respaldo-'+new Date().toISOString().slice(0,10)+'.json';
+      a.click();
+      this.showToast('Respaldo descargado. Guárdelo en USB o en la nube.');
+    },
+    resetDatos(){
+      if(confirm('¿Borrar todos los datos guardados y volver a los datos de demostración? Esta acción no se puede deshacer.')){
+        localStorage.removeItem('proauto_datos');
+        location.reload();
+      }
+    },
+    showToast(t){this.toast=t;setTimeout(()=>this.toast='',3400)},
+    init(){
+      this.load();
+      setInterval(()=>this.save(),4000);
+      window.addEventListener('beforeunload',()=>this.save());
+      this.tIng={cant:1,metodo:'Efectivo'};
+      this.tGas={metodo:'Efectivo',area:'General',categoria:'Compra de repuestos e insumos'};
+      window.addEventListener('keydown',e=>{
+        if(this.view==='login'&&this.sel){
+          if(/^[0-9]$/.test(e.key))this.pinPress(e.key);
+          if(e.key==='Backspace')this.pin=this.pin.slice(0,-1);
+          return;
+        }
+        if(this.view!=='web')return;
+        if(e.key==='F2'){e.preventDefault();this.openNuevaOT()}
+        if(e.key==='F9'){e.preventDefault();this.page='cierre'}
+        if(e.ctrlKey&&e.key==='b'){e.preventDefault();document.querySelector('input[placeholder*="Buscar"]')?.focus()}
+      });
+    }
+  }
+}
+</script>
+</body>
+</html>
