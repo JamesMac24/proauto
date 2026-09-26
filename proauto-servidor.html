@@ -276,6 +276,12 @@
           Finanzas y ratios
         </div>
       </template>
+      <template x-if="user?.rol==='admin'">
+        <div @click="page='personal'" :class="page==='personal'&&'active'" class="navlink">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.4 2.9-5.5 6.5-5.5s6.5 2.1 6.5 5.5"/><path d="M17 11h5M19.5 8.5v5"/></svg>
+          Personal y accesos
+        </div>
+      </template>
       <div @click="page='cierre'" :class="page==='cierre'&&'active'" class="navlink" style="color:#FCA5A5">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
         Cierre de caja
@@ -289,7 +295,7 @@
         <button @click="backup()" class="w-full text-neutral-400 hover:text-white text-xs py-1.5 text-left px-2">⬇ Descargar respaldo (.json)</button>
       </template>
       <template x-if="user?.rol==='admin'">
-        <button @click="resetDatos()" class="w-full text-neutral-600 hover:text-red-400 text-xs py-1.5 text-left px-2">Borrar datos y volver al demo</button>
+        <button @click="resetDatos()" class="w-full text-neutral-600 hover:text-red-400 text-xs py-1.5 text-left px-2">Reiniciar sistema (borra todo)</button>
       </template>
       <template x-if="user?.rol==='admin'">
         <button @click="if(confirm('¿Desconectar este equipo del servidor? Deberá volver a ingresar la URL y la clave.')){localStorage.removeItem('proauto_sb');location.reload()}" class="w-full text-neutral-600 hover:text-white text-xs py-1.5 text-left px-2">Cambiar servidor</button>
@@ -342,25 +348,34 @@
                   <button @click="verOT(ot)" class="text-xs font-semibold txt-red">Cobrar</button>
                 </div>
               </template>
-              <div class="flex items-center gap-3 p-2.5 rounded-lg" style="background:#FFFBEB">
+              <div x-show="reposicion().length" class="flex items-center gap-3 p-2.5 rounded-lg" style="background:#FFFBEB">
                 <span class="dot" style="background:var(--amber)"></span>
-                <span class="flex-1"><b>3 repuestos bajo stock mínimo</b></span>
+                <span class="flex-1"><b x-text="reposicion().length+(reposicion().length===1?' repuesto bajo stock mínimo':' repuestos bajo stock mínimo')"></b></span>
                 <button @click="page='inventario'" class="text-xs font-semibold txt-orange">Ver</button>
               </div>
-              <div class="flex items-center gap-3 p-2.5 rounded-lg" style="background:var(--soft)">
+              <div x-show="tardanzasHoy().n" class="flex items-center gap-3 p-2.5 rounded-lg" style="background:var(--soft)">
                 <span class="dot" style="background:var(--muted)"></span>
-                <span class="flex-1"><b>2 tardanzas hoy</b> — 19 min en total</span>
+                <span class="flex-1"><b x-text="tardanzasHoy().n+(tardanzasHoy().n===1?' tardanza hoy':' tardanzas hoy')"></b> — <span x-text="tardanzasHoy().min+' min en total'"></span></span>
                 <button @click="page='asistencia'" class="text-xs font-semibold text-gray-600">Ver</button>
+              </div>
+              <div x-show="!porCobrar().length && !reposicion().length && !tardanzasHoy().n" class="flex items-center gap-3 p-2.5 rounded-lg" style="background:#ECFDF5">
+                <span class="dot" style="background:var(--green)"></span>
+                <span class="flex-1 text-gray-600">Sin avisos pendientes. Todo en orden.</span>
               </div>
             </div>
           </div>
           <div class="card p-5">
             <h3 class="font-bold text-sm mb-3">Reconocimientos del mes</h3>
             <div class="space-y-2 text-[12.5px]">
-              <div class="flex items-center gap-2 p-2 rounded-lg" style="background:#FFF7ED"><span class="font-bold txt-orange">1°</span><span class="flex-1 font-semibold">Nelson</span><span class="text-gray-500">18 órdenes</span></div>
-              <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--soft)"><span class="font-bold text-gray-500">2°</span><span class="flex-1 font-semibold">Carlos</span><span class="text-gray-500">15 órdenes</span></div>
-              <div class="flex items-center gap-2 p-2 rounded-lg" style="background:var(--soft)"><span class="font-bold text-gray-500">3°</span><span class="flex-1 font-semibold">Gabriela</span><span class="text-gray-500">14 órdenes</span></div>
-              <p class="text-[11px] text-gray-400 pt-1">Reconocimiento mensual al desempeño del equipo.</p>
+              <template x-for="(r,i) in ranking()" :key="r.nombre">
+                <div class="flex items-center gap-2 p-2 rounded-lg" :style="'background:'+(i===0?'#FFF7ED':'var(--soft)')">
+                  <span class="font-bold" :class="i===0?'txt-orange':'text-gray-500'" x-text="(i+1)+'°'"></span>
+                  <span class="flex-1 font-semibold" x-text="r.nombre"></span>
+                  <span class="text-gray-500" x-text="r.n+(r.n===1?' orden':' órdenes')"></span>
+                </div>
+              </template>
+              <p x-show="!ranking().length" class="text-gray-400 py-2">Aún no hay trabajos entregados este mes.</p>
+              <p class="text-[11px] text-gray-400 pt-1">Órdenes entregadas en el mes en curso.</p>
             </div>
           </div>
         </div>
@@ -554,7 +569,7 @@
             <tbody>
               <template x-for="i in ingresos.filter(x=>x.area==='Repuestos')" :key="i.id">
                 <tr class="border-t" style="border-color:var(--border)">
-                  <td class="td text-gray-500" x-text="'19/07 · '+i.hora"></td>
+                  <td class="td text-gray-500" x-text="(i.fecha||'—')+' · '+i.hora"></td>
                   <td class="td font-medium" x-text="i.desc"></td>
                   <td class="td text-xs" x-text="i.metodo+(i.banco?' · '+i.banco:'')"></td>
                   <td class="td text-right text-gray-500" x-text="i.cant"></td>
@@ -965,11 +980,11 @@
             <h1 class="text-xl font-bold">Cronograma de tareas del taller</h1>
             <p class="text-xs text-gray-500">Funciones fijas del equipo — cada colaborador ve las suyas también en su app móvil</p>
           </div>
-          <button x-show="user?.rol==='admin'" class="btn-dark rounded-lg px-4 py-2 text-sm font-semibold">Editar cronograma</button>
+          <button x-show="puedeEditarTareas()" @click="abrirTarea(null)" class="btn-dark rounded-lg px-4 py-2 text-sm font-semibold">+ Agregar tarea</button>
         </div>
         <div class="card overflow-hidden">
           <table class="w-full">
-            <thead style="background:var(--canvas)"><tr><th class="th">Tarea</th><th class="th">Frecuencia</th><th class="th">Día</th><th class="th">Responsable</th><th class="th" style="text-align:center">Cumplida</th></tr></thead>
+            <thead style="background:var(--canvas)"><tr><th class="th">Tarea</th><th class="th">Frecuencia</th><th class="th">Día</th><th class="th">Responsable</th><th class="th" style="text-align:center">Cumplida</th><th class="th"></th></tr></thead>
             <tbody>
               <template x-for="t in tareas" :key="t.id">
                 <tr class="border-t" style="border-color:var(--border)">
@@ -979,6 +994,12 @@
                   <td class="td" x-text="t.responsable"></td>
                   <td class="td text-center">
                     <button @click="t.hecho=!t.hecho" class="rounded-lg px-3 py-1 text-[11px] font-bold" :class="t.hecho?'btn-primary':'btn-ghost'" x-text="t.hecho?'✓ Hecha':'Marcar'"></button>
+                  </td>
+                  <td class="td">
+                    <div class="flex gap-1.5 justify-end" x-show="puedeEditarTareas()">
+                      <button @click="abrirTarea(t)" class="btn-ghost rounded px-2.5 py-1 text-[11px] font-bold">Editar</button>
+                      <button @click="borrarTarea(t)" class="btn-ghost rounded px-2.5 py-1 text-[11px] font-bold" style="color:var(--red)">Quitar</button>
+                    </div>
                   </td>
                 </tr>
               </template>
@@ -1018,6 +1039,57 @@
           </ul>
         </div>
         <button x-show="user?.rol==='admin'" class="btn-dark rounded-lg px-5 py-2.5 text-sm font-semibold">Editar reglamento (Administración)</button>
+      </div>
+
+      <!-- PERSONAL Y ACCESOS (admin) -->
+      <div x-show="page==='personal'" class="fade-in space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-xl font-bold">Personal y accesos</h1>
+            <p class="text-xs text-gray-500">Alta y baja de colaboradores. Los cambios se aplican en todos los equipos sin tocar el código.</p>
+          </div>
+          <button @click="abrirPersona(null)" class="btn-primary rounded-lg px-4 py-2 text-sm font-semibold">+ Agregar colaborador</button>
+        </div>
+        <div class="card overflow-hidden">
+          <table class="w-full">
+            <thead style="background:var(--canvas)"><tr><th class="th">Colaborador</th><th class="th">Cargo</th><th class="th">Rol en el sistema</th><th class="th">Acceso</th><th class="th" style="text-align:right">Base semanal</th><th class="th"></th></tr></thead>
+            <tbody>
+              <template x-for="p in personas" :key="p.id">
+                <tr class="border-t" style="border-color:var(--border)">
+                  <td class="td">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-[11px] text-white" :style="'background:'+(p.rol==='admin'?'var(--black)':'var(--orange)')" x-text="p.ini"></div>
+                      <span class="font-medium" x-text="p.nombre"></span>
+                    </div>
+                  </td>
+                  <td class="td text-gray-500" x-text="p.cargo"></td>
+                  <td class="td"><span class="chip" x-text="rolNombre(p.rol)"></span></td>
+                  <td class="td">
+                    <span class="chip"><span class="dot" :style="'background:'+(p.pass?'var(--green)':'var(--amber)')"></span><span x-text="p.pass?'Contraseña creada':'Pendiente de primer ingreso'"></span></span>
+                  </td>
+                  <td class="td text-right font-mono" x-text="baseDe(p.nombre)?S(baseDe(p.nombre)):'—'"></td>
+                  <td class="td">
+                    <div class="flex gap-1.5 justify-end">
+                      <button @click="abrirPersona(p)" class="btn-ghost rounded px-2.5 py-1 text-[11px] font-bold">Editar</button>
+                      <button @click="resetClave(p.nombre)" class="btn-ghost rounded px-2.5 py-1 text-[11px] font-bold" title="Borra su contraseña para que cree una nueva">Rest. clave</button>
+                      <button @click="bajaPersona(p)" class="btn-ghost rounded px-2.5 py-1 text-[11px] font-bold" style="color:var(--red)">Dar de baja</button>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <div class="card p-4">
+          <h3 class="font-bold text-sm mb-2">Qué ve cada rol</h3>
+          <div class="space-y-1.5 text-[12.5px] text-gray-600">
+            <div><b>Administrador</b> — acceso total, incluidas Finanzas, Pagos al personal y esta pantalla.</div>
+            <div><b>Asesora de Servicio</b> — operación diaria: caja, órdenes, inventario y cronograma. No ve Finanzas ni Pagos.</div>
+            <div><b>Técnico Automotriz</b> — app móvil con sus órdenes de mecánica. No ve montos de caja.</div>
+            <div><b>Tornería</b> — app móvil con sus trabajos de tornería y su 35% de producción. No ve montos de caja.</div>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-3">Al agregar a alguien, entra sin contraseña y crea la suya en su primer ingreso. Dar de baja le quita el acceso pero conserva sus órdenes y registros anteriores.</p>
+        </div>
       </div>
 
       <!-- CIERRE -->
@@ -1072,7 +1144,7 @@
         <template x-if="['mecanico','tornero'].includes(movilRole)">
           <div class="space-y-2.5">
             <div class="rounded-xl p-3 text-[12px] font-semibold text-white" style="background:linear-gradient(120deg,var(--orange),#E8570F)">
-              <span x-text="movilRole==='mecanico'?'5 trabajos finalizados esta semana — excelente desempeño':'4 piezas entregadas a tiempo esta semana — gran precisión técnica'"></span>
+              <span x-text="miResumenSemana()"></span>
             </div>
             <button @click="openNuevaOTMovil()" class="w-full btn-primary rounded-xl py-3 text-sm font-bold">+ Registrar nueva orden</button>
             <template x-for="ot in otsMovil()" :key="ot.id">
@@ -1162,8 +1234,9 @@
               <div class="lbl mb-2">Avisos</div>
               <div class="text-[12px] space-y-1.5">
                 <div class="txt-red font-semibold" x-show="porCobrar().length" x-text="'• '+porCobrar().length+' trabajo(s) por cobrar en caja'"></div>
-                <div class="txt-red font-semibold">• 2 tardanzas hoy (19 min)</div>
-                <div class="font-semibold" style="color:var(--amber)">• 3 repuestos bajo stock mínimo</div>
+                <div class="txt-red font-semibold" x-show="tardanzasHoy().n" x-text="'• '+tardanzasHoy().n+' tardanza(s) hoy ('+tardanzasHoy().min+' min)'"></div>
+                <div class="font-semibold" style="color:var(--amber)" x-show="reposicion().length" x-text="'• '+reposicion().length+' repuesto(s) bajo stock mínimo'"></div>
+                <div class="text-gray-400" x-show="!porCobrar().length && !tardanzasHoy().n && !reposicion().length">Sin avisos pendientes.</div>
               </div>
             </div>
           </div>
@@ -1380,11 +1453,13 @@
         <span class="lbl">Responsable asignado</span>
         <select x-model="nOT.maestro" class="inp ring-o mt-1">
           <option value="">— Elegir —</option>
-          <template x-if="nOT.area==='Mecánica'"><option>Nelson</option></template>
-          <template x-if="nOT.area==='Mecánica'"><option>Carlos</option></template>
-          <template x-if="nOT.area==='Tornería'"><option>Gabriela</option></template>
-          <template x-if="nOT.area==='Tornería'"><option>Aldair</option></template>
+          <template x-for="p in tecnicosDe(nOT.area)" :key="p.id"><option x-text="p.nombre"></option></template>
         </select>
+      </div>
+      <div>
+        <span class="lbl">Fecha de ingreso</span>
+        <input type="date" x-model="nOT.fechaIng" :max="hoyISO()" class="inp ring-o mt-1">
+        <p class="text-[11px] text-gray-500 mt-1">Déjela como está para registrar hoy. Cámbiela para cargar trabajos atrasados del cuaderno con su fecha real.</p>
       </div>
       <div>
         <span class="lbl">Entrega estimada</span>
@@ -1471,7 +1546,7 @@
       </div>
       <div x-show="['Subvención alimentaria','Adelanto de sueldo a personal','Pago de producción (35% torneros)'].includes(tGas.categoria)"><span class="lbl">Colaborador</span>
         <select x-model="tGas.trabajador" class="inp ring-o mt-1">
-          <option value="">— Elegir —</option><option>Nelson</option><option>Carlos</option><option>Gabriela</option><option>Aldair</option><option>Karina</option><option>Todos</option>
+          <option value="">— Elegir —</option><template x-for="p in personas.filter(x=>x.rol!=='admin')" :key="p.id"><option x-text="p.nombre"></option></template><option>Todos</option>
         </select>
       </div>
       <div x-show="tGas.categoria==='Pago de producción (35% torneros)'&&tGas.trabajador" class="p-3 rounded-lg text-[12px]" style="background:#FFF7ED">
@@ -1745,11 +1820,74 @@
   </div>
 </div>
 
+<!-- ============ MODAL COLABORADOR ============ -->
+<div x-show="modalPersona" @keydown.escape.window="modalPersona=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-1" x-text="tPer.nuevo?'Agregar colaborador':'Editar colaborador'"></h2>
+    <p class="text-xs text-gray-500 mb-4" x-text="tPer.nuevo?'Entrará sin contraseña y creará la suya en su primer ingreso.':'Los cambios se aplican en todos los equipos.'"></p>
+    <div class="space-y-3">
+      <div><span class="lbl">Nombre</span><input type="text" x-model="tPer.nombre" placeholder="Ej.: Fernando" class="inp ring-o mt-1"></div>
+      <div><span class="lbl">Rol en el sistema</span>
+        <select x-model="tPer.rol" @change="tPer.cargo=rolNombre(tPer.rol)" class="inp ring-o mt-1">
+          <option value="admin">Administrador — acceso total</option>
+          <option value="caja">Asesora de Servicio — operación diaria</option>
+          <option value="mecanico">Técnico Automotriz — mecánica</option>
+          <option value="tornero">Tornería — 35% de producción</option>
+        </select>
+      </div>
+      <div><span class="lbl">Cargo (como aparece en pantalla)</span><input type="text" x-model="tPer.cargo" class="inp ring-o mt-1"></div>
+      <div x-show="tPer.rol!=='admin'">
+        <span class="lbl">Base semanal (S/) — dejar en 0 si cobra solo por producción</span>
+        <input type="number" step="0.01" min="0" x-model.number="tPer.baseSem" class="inp ring-o font-mono mt-1">
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalPersona=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="guardarPersona()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold" x-text="tPer.nuevo?'Agregar':'Guardar cambios'"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL TAREA DEL CRONOGRAMA ============ -->
+<div x-show="modalTarea" @keydown.escape.window="modalTarea=false" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(10,10,10,.55)">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 fade-in">
+    <h2 class="text-lg font-bold mb-4" x-text="tTar.nuevo?'Agregar tarea':'Editar tarea'"></h2>
+    <div class="space-y-3">
+      <div><span class="lbl">Tarea</span><input type="text" x-model="tTar.tarea" placeholder="Ej.: Limpieza del baño" class="inp ring-o mt-1"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><span class="lbl">Frecuencia</span>
+          <select x-model="tTar.frecuencia" class="inp ring-o mt-1">
+            <option>Diaria</option><option>Diaria (rotativa)</option><option>Diaria — fin de jornada</option>
+            <option>2 veces por semana</option><option>Semanal</option><option>Quincenal</option><option>Mensual</option>
+          </select>
+        </div>
+        <div><span class="lbl">Día</span>
+          <select x-model="tTar.dia" class="inp ring-o mt-1">
+            <option>Hoy</option><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option><option>Mié y Sáb</option><option>Sábado por la tarde</option>
+          </select>
+        </div>
+      </div>
+      <div><span class="lbl">Responsable</span>
+        <select x-model="tTar.responsable" class="inp ring-o mt-1">
+          <option>Todos</option><option>Cada técnico</option>
+          <template x-for="p in personas" :key="p.id"><option x-text="p.nombre"></option></template>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button @click="modalTarea=false" class="btn-ghost flex-1 rounded-lg py-2.5 text-sm">Cancelar</button>
+      <button @click="guardarTarea()" class="btn-primary flex-1 rounded-lg py-2.5 text-sm font-bold">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div x-show="toast" x-transition class="fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-2xl z-50 text-sm font-semibold text-white" style="background:var(--black)" x-text="toast"></div>
 
 <script>
 function app(){
+  const HOY=(()=>{const d=new Date();return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')})();
+  const HOYISO=(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')})();
   return {
     view:'login', page:'dashboard', periodo:'Día', tabAt:'Mecánica',
     sb:null, cfgUrl:'', cfgKey:'', cfgError:'', cfgCargando:false, online:false,
@@ -1760,6 +1898,7 @@ function app(){
     modalMat:false, tMat:{mat:null,otId:'',cant:1}, matArea:'Todos',
     modalCobro:false, cobroOT:null, pagos:[],
     modalProd:false, tProd:{}, modalEntrada:false, tEnt:{prod:null,cant:1,costo:null},
+    modalPersona:false, tPer:{}, modalTarea:false, tTar:{},
     toast:'', det:{}, nOT:{items:[]}, tIng:{}, tGas:{}, cierre:{}, otFin:null, obsFin:'', msg:'',
     metodos:['Efectivo','Yape','Plin','Transferencia'],
     marcasPortada:[
@@ -1796,11 +1935,14 @@ function app(){
 
     personas:[
       {id:1,nombre:'Tony',ini:'TO',cargo:'Administrador · Dueño',rol:'admin',pass:null,rec:''},
-      {id:2,nombre:'Karina',ini:'KA',cargo:'Asesora de Servicio',rol:'caja',pass:null,rec:''},
-      {id:3,nombre:'Nelson',ini:'NE',cargo:'Técnico Automotriz',rol:'mecanico',pass:null,rec:''},
-      {id:4,nombre:'Carlos',ini:'CA',cargo:'Técnico Automotriz',rol:'mecanico',pass:null,rec:''},
-      {id:5,nombre:'Gabriela',ini:'GA',cargo:'Técnica en Tornería',rol:'tornero',pass:null,rec:''},
-      {id:6,nombre:'Aldair',ini:'AL',cargo:'Técnico en Tornería',rol:'tornero',pass:null,rec:''},
+      {id:2,nombre:'Alicia',ini:'AL',cargo:'Administradora',rol:'admin',pass:null,rec:''},
+      {id:3,nombre:'James',ini:'JA',cargo:'Administrador',rol:'admin',pass:null,rec:''},
+      {id:4,nombre:'Karina',ini:'KA',cargo:'Asesora de Servicio',rol:'caja',pass:null,rec:''},
+      {id:5,nombre:'Gabriela',ini:'GB',cargo:'Técnica en Tornería',rol:'tornero',pass:null,rec:''},
+      {id:6,nombre:'Aldair',ini:'AD',cargo:'Técnico en Tornería',rol:'tornero',pass:null,rec:''},
+      {id:7,nombre:'Carlos',ini:'CA',cargo:'Técnico Automotriz',rol:'mecanico',pass:null,rec:''},
+      {id:8,nombre:'Fernando',ini:'FE',cargo:'Técnico Automotriz',rol:'mecanico',pass:null,rec:''},
+      {id:9,nombre:'Luis',ini:'LU',cargo:'Técnico Automotriz',rol:'mecanico',pass:null,rec:''},
     ],
     frases:[
       'El trabajo bien hecho es la mejor carta de presentación.',
@@ -1827,7 +1969,7 @@ function app(){
     ],
     mensajes:[
       {id:1,de:'Tony',texto:'Buen día equipo. Hoy llega el cliente del Sportage a las 10, atención con eso.',hora:'07:55'},
-      {id:2,de:'Nelson',texto:'Recibido. El Corolla ya está en proceso, termino antes del mediodía.',hora:'08:20'},
+      {id:2,de:'Carlos',texto:'Recibido. El Corolla ya está en proceso, termino antes del mediodía.',hora:'08:20'},
       {id:3,de:'Karina',texto:'Llegaron los filtros Fram que faltaban, ya ingresados al inventario.',hora:'09:10'},
       {id:4,de:'Gabriela',texto:'El cigüeñal del Sr. Mendoza queda listo hoy a las 4pm 👍',hora:'10:05'},
     ],
@@ -1837,12 +1979,12 @@ function app(){
       {dni:'42987654',nombre:'Carlos Mendoza Ruiz',telefono:'965 432 198',visitas:12,vehiculos:[{placa:'GHI-789',marca:'Kia',modelo:'Sportage'}]},
     ],
     ots:[
-      {id:'OTI-M-0041',fecha:'19/07',cliente:'Juan Paredes Sánchez',vehiculo:'Corolla · ABC-123',marca:'Toyota',area:'Mecánica',maestro:'Nelson',estado:'EN PROCESO',monto:445,trabajo:'Cambio de aceite y filtros; Revisión de frenos',entrega:'Hoy · 5:00 pm'},
-      {id:'OTI-M-0042',fecha:'19/07',cliente:'María Gonzales Torres',vehiculo:'Aveo · DEF-456',marca:'Chevrolet',area:'Mecánica',maestro:'Carlos',estado:'APROBADA',monto:680,trabajo:'Cambio de pastillas; Rectificado de discos',entrega:'Mañana'},
-      {id:'OTI-T-0043',fecha:'19/07',cliente:'Carlos Mendoza Ruiz',pieza:'Cigüeñal',area:'Tornería',maestro:'Gabriela',estado:'EN PROCESO',monto:480,mat:60,trabajo:'Rectificado de cigüeñal',entrega:'Hoy · 5:00 pm'},
-      {id:'OTI-M-0044',fecha:'19/07',cliente:'Ana Vera Campos',vehiculo:'Sportage · JKL-321',marca:'Kia',area:'Mecánica',maestro:'Nelson',estado:'INGRESO',monto:1520,trabajo:'Mantenimiento de 20 mil km',entrega:''},
-      {id:'OTI-T-0045',fecha:'19/07',cliente:'Roberto Silva Peña',pieza:'Eje trasero',area:'Tornería',maestro:'Aldair',estado:'POR COBRAR',monto:285,mat:35,trabajo:'Torneado de eje trasero',entrega:'Hoy · 3:00 pm'},
-      {id:'OTI-M-0038',fecha:'03/07',cliente:'Juan Paredes Sánchez',vehiculo:'Corolla · ABC-123',marca:'Toyota',area:'Mecánica',maestro:'Nelson',estado:'ENTREGADA',monto:320,trabajo:'Revisión general',entrega:'04/07'},
+      {id:'OTI-M-0041',fecha:HOY,fechaISO:HOYISO,cliente:'Juan Paredes Sánchez',vehiculo:'Corolla · ABC-123',marca:'Toyota',area:'Mecánica',maestro:'Carlos',estado:'EN PROCESO',monto:445,trabajo:'Cambio de aceite y filtros; Revisión de frenos',entrega:'Hoy · 5:00 pm'},
+      {id:'OTI-M-0042',fecha:HOY,fechaISO:HOYISO,cliente:'María Gonzales Torres',vehiculo:'Aveo · DEF-456',marca:'Chevrolet',area:'Mecánica',maestro:'Fernando',estado:'APROBADA',monto:680,trabajo:'Cambio de pastillas; Rectificado de discos',entrega:'Mañana'},
+      {id:'OTI-T-0043',fecha:HOY,fechaISO:HOYISO,cliente:'Carlos Mendoza Ruiz',pieza:'Cigüeñal',area:'Tornería',maestro:'Gabriela',estado:'EN PROCESO',monto:480,mat:60,trabajo:'Rectificado de cigüeñal',entrega:'Hoy · 5:00 pm'},
+      {id:'OTI-M-0044',fecha:HOY,fechaISO:HOYISO,cliente:'Ana Vera Campos',vehiculo:'Sportage · JKL-321',marca:'Kia',area:'Mecánica',maestro:'Carlos',estado:'INGRESO',monto:1520,trabajo:'Mantenimiento de 20 mil km',entrega:''},
+      {id:'OTI-T-0045',fecha:HOY,fechaISO:HOYISO,cliente:'Roberto Silva Peña',pieza:'Eje trasero',area:'Tornería',maestro:'Aldair',estado:'POR COBRAR',monto:285,mat:35,trabajo:'Torneado de eje trasero',entrega:'Hoy · 3:00 pm'},
+      {id:'OTI-M-0038',fecha:'03/07',cliente:'Juan Paredes Sánchez',vehiculo:'Corolla · ABC-123',marca:'Toyota',area:'Mecánica',maestro:'Carlos',estado:'ENTREGADA',monto:320,trabajo:'Revisión general',entrega:'04/07'},
     ],
     otSeq:{M:46,T:45}, ventaSeq:24,
     sugerencias:[
@@ -1875,18 +2017,19 @@ function app(){
     movsInv:[
       {id:1,codigo:'7501234567890',fecha:'15/07',tipo:'Ingreso',cant:10,precio:18,por:'Karina'},
       {id:2,codigo:'7501234567890',fecha:'17/07',tipo:'Venta',cant:6,precio:28,por:'Karina'},
-      {id:3,codigo:'7501234567890',fecha:'19/07',tipo:'Venta',cant:2,precio:28,por:'Karina'},
+      {id:3,codigo:'7501234567890',fecha:HOY,tipo:'Venta',cant:2,precio:28,por:'Karina'},
       {id:4,codigo:'7501234567896',fecha:'12/07',tipo:'Ingreso',cant:8,precio:22,por:'Karina'},
       {id:5,codigo:'7501234567896',fecha:'16/07',tipo:'Venta',cant:5,precio:35,por:'Karina'},
       {id:6,codigo:'7501234567896',fecha:'18/07',tipo:'Venta',cant:3,precio:35,por:'Karina'},
-      {id:7,codigo:'7501234567891',fecha:'19/07',tipo:'Venta',cant:3,precio:95,por:'Karina'},
+      {id:7,codigo:'7501234567891',fecha:HOY,tipo:'Venta',cant:3,precio:95,por:'Karina'},
     ],
     empleados:[
-      {id:1,nombre:'Nelson',cargo:'Técnico Automotriz',baseSem:350,entrada:'08:12',salida:'',atraso:12,semana:['08:03','08:00','08:15 +15','07:58','08:12 +12','08:12 +12'],tardanzasSem:39,faltasSem:0},
-      {id:2,nombre:'Carlos',cargo:'Técnico Automotriz',baseSem:350,entrada:'08:07',salida:'',atraso:7,semana:['07:55','F','08:00','08:07 +7','07:59','08:07 +7'],tardanzasSem:14,faltasSem:1},
-      {id:3,nombre:'Gabriela',cargo:'Técnica en Tornería',baseSem:0,entrada:'07:58',salida:'',atraso:0,semana:['07:50','07:55','07:58','07:52','07:56','07:58'],tardanzasSem:0,faltasSem:0},
-      {id:4,nombre:'Aldair',cargo:'Técnico en Tornería',baseSem:0,entrada:'07:55',salida:'',atraso:0,semana:['07:58','07:52','08:05 +5','07:55','07:50','07:55'],tardanzasSem:5,faltasSem:0},
-      {id:5,nombre:'Karina',cargo:'Asesora de Servicio',baseSem:300,entrada:'07:50',salida:'',atraso:0,semana:['07:45','07:50','07:48','07:52','07:49','07:50'],tardanzasSem:0,faltasSem:0},
+      {id:4,nombre:'Karina',cargo:'Asesora de Servicio',baseSem:0,entrada:'',salida:'',atraso:0,semana:['','','','','',''],tardanzasSem:0,faltasSem:0},
+      {id:5,nombre:'Gabriela',cargo:'Técnica en Tornería',baseSem:0,entrada:'',salida:'',atraso:0,semana:['','','','','',''],tardanzasSem:0,faltasSem:0},
+      {id:6,nombre:'Aldair',cargo:'Técnico en Tornería',baseSem:0,entrada:'',salida:'',atraso:0,semana:['','','','','',''],tardanzasSem:0,faltasSem:0},
+      {id:7,nombre:'Carlos',cargo:'Técnico Automotriz',baseSem:0,entrada:'',salida:'',atraso:0,semana:['','','','','',''],tardanzasSem:0,faltasSem:0},
+      {id:8,nombre:'Fernando',cargo:'Técnico Automotriz',baseSem:0,entrada:'',salida:'',atraso:0,semana:['','','','','',''],tardanzasSem:0,faltasSem:0},
+      {id:9,nombre:'Luis',cargo:'Técnico Automotriz',baseSem:0,entrada:'',salida:'',atraso:0,semana:['','','','','',''],tardanzasSem:0,faltasSem:0},
     ],
     flujo:{
       'Día':[
@@ -1907,6 +2050,9 @@ function app(){
     logo(){return document.getElementById('logo-dark').innerHTML},
     S(n){return 'S/ '+(Number(n)||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')},
     hoy(){return new Date().toLocaleDateString('es-PE',{weekday:'short',day:'numeric',month:'short'})},
+    hoyCorto(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')},
+    hoyISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')},
+    isoACorto(v){if(!v)return this.hoyCorto();const[a,m,d]=v.split('-');return d+'/'+m},
     hoyLargo(){return new Date().toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})},
     fraseDia(){return this.frases[new Date().getDate()%this.frases.length]},
     saludo(){const h=new Date().getHours();return h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'},
@@ -1921,9 +2067,9 @@ function app(){
     difTotal(){let d=0;this.metodos.forEach(m=>{if(this.cierre[m]!==undefined&&this.cierre[m]!=='')d+=this.cierre[m]-this.saldoMetodo(m)});return d},
     porCobrar(){return this.ots.filter(o=>o.estado==='POR COBRAR')},
     miEmpleado(){return this.empleados.find(e=>e.nombre===this.user?.nombre)},
-    misOts(){return this.ots.filter(o=>o.maestro===(this.user?.nombre||'')&&o.fecha==='19/07')},
-    prodHoy(n){return this.ots.filter(o=>o.area==='Tornería'&&o.maestro===n&&o.estado==='ENTREGADA'&&o.fecha==='19/07').reduce((s,o)=>s+o.monto,0)},
-    matHoy(n){return this.ots.filter(o=>o.area==='Tornería'&&o.maestro===n&&o.estado==='ENTREGADA'&&o.fecha==='19/07').reduce((s,o)=>s+(o.mat||0),0)},
+    misOts(){return this.ots.filter(o=>o.maestro===(this.user?.nombre||'')&&(o.fechaISO||'')===this.hoyISO())},
+    prodHoy(n){return this.ots.filter(o=>o.area==='Tornería'&&o.maestro===n&&o.estado==='ENTREGADA'&&(o.fechaISO||'')===this.hoyISO()).reduce((s,o)=>s+o.monto,0)},
+    matHoy(n){return this.ots.filter(o=>o.area==='Tornería'&&o.maestro===n&&o.estado==='ENTREGADA'&&(o.fechaISO||'')===this.hoyISO()).reduce((s,o)=>s+(o.mat||0),0)},
     sug35(n){return Math.max(0,(this.prodHoy(n)-this.matHoy(n))*0.35)},
     adelantosDe(n){return this.gastos.filter(g=>g.categoria==='Adelanto de sueldo a personal'&&g.trabajador===n).reduce((s,g)=>s+g.total,0)},
     pagosProdDe(n){return this.gastos.filter(g=>g.categoria==='Pago de producción (35% torneros)'&&g.trabajador===n).reduce((s,g)=>s+g.total,0)},
@@ -1958,7 +2104,7 @@ function app(){
       if(!this.tProd.nombre||!this.tProd.precio)return;
       const codigo='INT-'+String(this.inventario.filter(p=>p.codigo.startsWith('INT')).length+1).padStart(4,'0');
       this.inventario.push({codigo,nombre:this.tProd.nombre,marca:this.tProd.marca||'Genérico',stock:this.tProd.stock||0,minimo:this.tProd.minimo||2,precio:this.tProd.precio});
-      if(this.tProd.stock>0)this.movsInv.push({id:Date.now(),codigo,fecha:'19/07',tipo:'Ingreso',cant:this.tProd.stock,precio:this.tProd.costo||0,por:this.user?.nombre||'Caja'});
+      if(this.tProd.stock>0)this.movsInv.push({id:Date.now(),codigo,fecha:this.hoyCorto(),tipo:'Ingreso',cant:this.tProd.stock,precio:this.tProd.costo||0,por:this.user?.nombre||'Caja'});
       this.modalProd=false;
       this.showToast('Producto registrado con código interno '+codigo+'. Puede imprimir su etiqueta.');
     },
@@ -1966,7 +2112,7 @@ function app(){
     guardarEntrada(){
       const p=this.tEnt.prod; if(!p||!this.tEnt.cant)return;
       p.stock+=this.tEnt.cant;
-      this.movsInv.push({id:Date.now(),codigo:p.codigo,fecha:'19/07',tipo:'Ingreso',cant:this.tEnt.cant,precio:this.tEnt.costo||0,por:this.user?.nombre||'Caja'});
+      this.movsInv.push({id:Date.now(),codigo:p.codigo,fecha:this.hoyCorto(),tipo:'Ingreso',cant:this.tEnt.cant,precio:this.tEnt.costo||0,por:this.user?.nombre||'Caja'});
       this.modalEntrada=false;
       this.showToast('Entrada registrada: +'+this.tEnt.cant+' de '+p.nombre+'. Stock: '+p.stock);
     },
@@ -1994,7 +2140,7 @@ function app(){
       this.cart.forEach(c=>{
         const p=this.prodByCodigo(c.codigo);
         p.stock=Math.max(0,p.stock-c.cant);
-        this.movsInv.push({id:Date.now()+Math.random(),codigo:c.codigo,fecha:'19/07',tipo:'Venta',cant:c.cant,precio:c.precio,por:this.user?.nombre||'Caja'});
+        this.movsInv.push({id:Date.now()+Math.random(),codigo:c.codigo,fecha:this.hoyCorto(),tipo:'Venta',cant:c.cant,precio:c.precio,por:this.user?.nombre||'Caja'});
         if(p.stock===0)agotados.push(p.nombre);
       });
       this.ventaSeq++;
@@ -2040,6 +2186,98 @@ function app(){
       }catch(e){}
     },
 
+    tardanzasHoy(){
+      const con=this.empleados.filter(e=>(e.atraso||0)>0);
+      return {n:con.length, min:con.reduce((s,e)=>s+(e.atraso||0),0)};
+    },
+    ranking(){
+      const mes=this.hoyISO().slice(0,7);
+      const cuenta={};
+      this.ots.filter(o=>o.estado==='ENTREGADA'&&(o.fechaISO||'').startsWith(mes)&&o.maestro).forEach(o=>{cuenta[o.maestro]=(cuenta[o.maestro]||0)+1});
+      return Object.entries(cuenta).map(([nombre,n])=>({nombre,n})).sort((a,b)=>b.n-a.n).slice(0,3);
+    },
+    miResumenSemana(){
+      const mias=this.ots.filter(o=>o.maestro===(this.user?.nombre||''));
+      const list=mias.filter(o=>['POR COBRAR','ENTREGADA'].includes(o.estado)).length;
+      const abiertas=mias.filter(o=>['INGRESO','APROBADA','EN PROCESO'].includes(o.estado)).length;
+      if(!list&&!abiertas)return 'Sin trabajos asignados por ahora. Consulte con la Asesora de Servicio.';
+      if(!list)return abiertas+' trabajo(s) asignado(s). ¡A darle!';
+      return list+' trabajo(s) finalizado(s) y '+abiertas+' en curso. Buen ritmo.';
+    },
+    // --- Personal y accesos ----------------------------------------------
+    rolNombre(r){return {admin:'Administrador',caja:'Asesora de Servicio',mecanico:'Técnico Automotriz',tornero:'Técnico en Tornería'}[r]||r},
+    iniciales(n){const t=(n||'').trim();return (t.slice(0,2)||'??').toUpperCase()},
+    tecnicosDe(area){const r=area==='Tornería'?'tornero':'mecanico';return this.personas.filter(p=>p.rol===r)},
+    baseDe(nombre){const e=this.empleados.find(x=>x.nombre===nombre);return e?e.baseSem:0},
+    abrirPersona(p){
+      if(p)this.tPer={id:p.id,nombre:p.nombre,cargo:p.cargo,rol:p.rol,baseSem:this.baseDe(p.nombre),nuevo:false};
+      else this.tPer={id:null,nombre:'',cargo:'Técnico Automotriz',rol:'mecanico',baseSem:0,nuevo:true};
+      this.modalPersona=true;
+    },
+    guardarPersona(){
+      const t=this.tPer, nombre=(t.nombre||'').trim();
+      if(!nombre){this.showToast('Escriba el nombre del colaborador');return}
+      if(this.personas.some(p=>p.nombre.toLowerCase()===nombre.toLowerCase()&&p.id!==t.id)){this.showToast('Ya existe un colaborador con ese nombre');return}
+      if(t.nuevo){
+        const id=Math.max(0,...this.personas.map(p=>p.id))+1;
+        this.personas.push({id,nombre,ini:this.iniciales(nombre),cargo:t.cargo||this.rolNombre(t.rol),rol:t.rol,pass:null,rec:''});
+        this.showToast(nombre+' agregado. Creará su contraseña en su primer ingreso.');
+      }else{
+        const p=this.personas.find(x=>x.id===t.id);
+        if(p){
+          const antes=p.nombre;
+          p.nombre=nombre;p.ini=this.iniciales(nombre);p.cargo=t.cargo||p.cargo;p.rol=t.rol;
+          if(antes!==nombre){
+            this.empleados.forEach(e=>{if(e.nombre===antes)e.nombre=nombre});
+            this.ots.forEach(x=>{if(x.maestro===antes)x.maestro=nombre});
+            this.tareas.forEach(x=>{if(x.responsable===antes)x.responsable=nombre});
+            this.gastos.forEach(g=>{if(g.trabajador===antes)g.trabajador=nombre});
+          }
+        }
+        this.showToast('Datos de '+nombre+' actualizados');
+      }
+      this.sincronizarEmpleado(nombre,Number(t.baseSem)||0);
+      this.modalPersona=false;
+      this.save(true);
+    },
+    sincronizarEmpleado(nombre,base){
+      const p=this.personas.find(x=>x.nombre===nombre); if(!p)return;
+      const i=this.empleados.findIndex(e=>e.nombre===nombre);
+      if(p.rol==='admin'){ if(i>=0)this.empleados.splice(i,1); return }
+      if(i>=0){this.empleados[i].cargo=p.cargo;this.empleados[i].baseSem=base}
+      else this.empleados.push({id:p.id,nombre,cargo:p.cargo,baseSem:base,entrada:'',salida:'',atraso:0,semana:['','','','','',''],tardanzasSem:0,faltasSem:0});
+    },
+    bajaPersona(p){
+      if(this.user&&p.id===this.user.id){this.showToast('No puede darse de baja a usted mismo');return}
+      if(p.rol==='admin'&&this.personas.filter(x=>x.rol==='admin').length<=1){this.showToast('Debe quedar al menos un administrador');return}
+      if(!confirm('¿Dar de baja a '+p.nombre+'?\n\nPerderá el acceso al sistema. Sus órdenes y registros anteriores se conservan.'))return;
+      this.personas=this.personas.filter(x=>x.id!==p.id);
+      this.empleados=this.empleados.filter(e=>e.nombre!==p.nombre);
+      this.showToast(p.nombre+' dado de baja');
+      this.save(true);
+    },
+    // --- Cronograma --------------------------------------------------------
+    puedeEditarTareas(){return ['admin','caja'].includes(this.user?.rol)},
+    abrirTarea(t){
+      if(t)this.tTar={id:t.id,tarea:t.tarea,frecuencia:t.frecuencia,dia:t.dia,responsable:t.responsable,nuevo:false};
+      else this.tTar={id:null,tarea:'',frecuencia:'Diaria',dia:'Hoy',responsable:'Todos',nuevo:true};
+      this.modalTarea=true;
+    },
+    guardarTarea(){
+      const t=this.tTar, nombre=(t.tarea||'').trim();
+      if(!nombre){this.showToast('Escriba el nombre de la tarea');return}
+      if(t.nuevo)this.tareas.push({id:Math.max(0,...this.tareas.map(x=>x.id))+1,tarea:nombre,frecuencia:t.frecuencia,dia:t.dia,responsable:t.responsable,hecho:false});
+      else{const x=this.tareas.find(y=>y.id===t.id);if(x){x.tarea=nombre;x.frecuencia=t.frecuencia;x.dia=t.dia;x.responsable=t.responsable}}
+      this.modalTarea=false;
+      this.showToast('Cronograma actualizado');
+      this.save(true);
+    },
+    borrarTarea(t){
+      if(!confirm('¿Quitar la tarea "'+t.tarea+'" del cronograma?'))return;
+      this.tareas=this.tareas.filter(x=>x.id!==t.id);
+      this.showToast('Tarea quitada');
+      this.save(true);
+    },
     selUsuario(p){this.sel=p;this.dispositivo=null;this.passNueva='';this.passConf='';this.passRec='';this.passIn='';this.passError='';this.olvido=false},
     crearPass(){
       this.passError='';
@@ -2080,10 +2318,10 @@ function app(){
       if(this.movilRole==='tornero')return this.ots.filter(o=>o.area==='Tornería'&&['INGRESO','APROBADA','EN PROCESO','POR COBRAR'].includes(o.estado)&&o.maestro===(this.user?.nombre||''));
       return [];
     },
-    openNuevaOT(){this.nOT={area:'Mecánica',areaFija:false,desdeMovil:false,dni:'',nombre:'',placa:'',vehiculoTxt:'',items:[{t:'',p:null}],pieza:'',entTipo:'hoy',entHora:'En 2 horas',entFecha:'',maestro:''};this.modalOT=true},
+    openNuevaOT(){this.nOT={area:'Mecánica',areaFija:false,desdeMovil:false,dni:'',nombre:'',placa:'',vehiculoTxt:'',items:[{t:'',p:null}],pieza:'',fechaIng:this.hoyISO(),entTipo:'hoy',entHora:'En 2 horas',entFecha:'',maestro:''};this.modalOT=true},
     openNuevaOTMovil(){
       const area=this.movilRole==='mecanico'?'Mecánica':'Tornería';
-      this.nOT={area,areaFija:true,desdeMovil:true,dni:'',nombre:'',placa:'',vehiculoTxt:'',items:[{t:'',p:null}],pieza:'',entTipo:'hoy',entHora:'En 2 horas',entFecha:'',maestro:this.user?.nombre||''};
+      this.nOT={area,areaFija:true,desdeMovil:true,dni:'',nombre:'',placa:'',vehiculoTxt:'',items:[{t:'',p:null}],pieza:'',fechaIng:this.hoyISO(),entTipo:'hoy',entHora:'En 2 horas',entFecha:'',maestro:this.user?.nombre||''};
       this.modalOT=true;
     },
     lookupDNI(){
@@ -2106,7 +2344,7 @@ function app(){
       const id='OTI-'+pfx+'-'+String(this.otSeq[pfx]).padStart(4,'0');
       const trabajos=this.nOT.items.filter(i=>i.t).map(i=>i.t).join('; ');
       const total=this.nOT.items.reduce((s,i)=>s+(i.p||0),0);
-      this.ots.unshift({id,fecha:'19/07',cliente:this.nOT.nombre||'Cliente por registrar',
+      this.ots.unshift({id,fecha:HOY,fechaISO:HOYISO,cliente:this.nOT.nombre||'Cliente por registrar',
         vehiculo:this.nOT.area==='Mecánica'?(this.nOT.vehiculoTxt||this.nOT.placa):null,
         pieza:this.nOT.area==='Tornería'?(this.nOT.pieza||'Pieza'):null, area:this.nOT.area,
         maestro:this.nOT.maestro||(this.nOT.desdeMovil?this.user?.nombre:'Por asignar'),
@@ -2135,7 +2373,7 @@ function app(){
         const p=this.prodByCodigo(this.tIng.codigo);
         const cant=Math.min(this.tIng.cant||1,p.stock);
         p.stock=Math.max(0,p.stock-cant);
-        this.movsInv.push({id:Date.now(),codigo:p.codigo,fecha:'19/07',tipo:'Venta',cant,precio:this.tIng.unit,por:this.user?.nombre||'Caja'});
+        this.movsInv.push({id:Date.now(),codigo:p.codigo,fecha:this.hoyCorto(),tipo:'Venta',cant,precio:this.tIng.unit,por:this.user?.nombre||'Caja'});
         if(p.stock===0)this.showToast('⚠️ '+p.nombre+' quedó AGOTADO');
       }
       this.ingresos.unshift({id:Date.now(),desc:this.tIng.desc,area:this.tIng.area||'Mecánica',metodo:this.tIng.metodo||'Efectivo',banco:this.tIng.metodo==='Transferencia'?(this.tIng.banco||'BCP'):'',cant:this.tIng.cant||1,total:(this.tIng.cant||1)*(this.tIng.unit||0),hora:new Date().toTimeString().slice(0,5)});
@@ -2153,23 +2391,54 @@ function app(){
     applyData(d){
       ['ots','ingresos','gastos','inventario','materiales','movsInv','sugerencias','tareas','otSeq','ventaSeq','mensajes','clientes','personas'].forEach(k=>{if(d[k]!==undefined)this[k]=d[k]});
     },
-    modalAbierto(){return this.modalOT||this.modalIngreso||this.modalGasto||this.modalDet||this.modalFin||this.modalPOS||this.modalKardex||this.modalMat||this.modalCobro||this.modalProd||this.modalEntrada},
-    async save(){
-      const d=this.snapshot();
-      try{localStorage.setItem('proauto_datos',JSON.stringify(d))}catch(e){}
-      if(this.sb){
-        try{
-          const {error}=await this.sb.from('taller_datos').upsert({id:1,data:d,updated_at:new Date().toISOString()});
-          this.online=!error;
-        }catch(e){this.online=false}
-      }
+    modalAbierto(){return this.modalOT||this.modalIngreso||this.modalGasto||this.modalDet||this.modalFin||this.modalPOS||this.modalKardex||this.modalMat||this.modalCobro||this.modalProd||this.modalEntrada||this.modalPersona||this.modalTarea},
+    // --- Sincronización segura entre dispositivos -------------------------
+    // Antes cada equipo reescribía el registro completo cada 5 segundos con su
+    // copia en memoria, así que un equipo inactivo borraba lo que otro acababa
+    // de guardar. Ahora solo se escribe cuando algo cambió de verdad, y antes
+    // de escribir se comprueba que nadie más haya guardado mientras tanto.
+    _sync:'', _stamp:null,
+    async save(forzar){
+      const json=JSON.stringify(this.snapshot());
+      try{localStorage.setItem('proauto_datos',json)}catch(e){}
+      if(!this.sb)return;
+      if(!forzar && json===this._sync)return;          // nada cambió: no se escribe
+      try{
+        const {data:act,error:eLee}=await this.sb.from('taller_datos').select('data,updated_at').eq('id',1).single();
+        if(eLee){this.online=false;return}
+        this.online=true;
+        // ¿Otro equipo escribió después de nuestra última lectura?
+        if(this._stamp && act && act.updated_at && act.updated_at!==this._stamp){
+          this._stamp=act.updated_at;
+          if(act.data && Object.keys(act.data).length){
+            this.applyData(act.data);
+            this._sync=JSON.stringify(this.snapshot());
+            this.showToast('Otro equipo guardó cambios. Se actualizó la pantalla — revise antes de continuar.');
+          }
+          return;                                       // no pisamos lo ajeno
+        }
+        // Marca estrictamente creciente: evita que dos escrituras del mismo
+        // milisegundo se confundan entre sí.
+        const prev=this._stamp?Date.parse(this._stamp):0;
+        const stamp=new Date(Math.max(Date.now(),prev+1)).toISOString();
+        const {error}=await this.sb.from('taller_datos').upsert({id:1,data:JSON.parse(json),updated_at:stamp});
+        this.online=!error;
+        if(!error){this._sync=json;this._stamp=stamp}
+      }catch(e){this.online=false}
     },
     async load(){
       if(this.sb){
         try{
-          const {data,error}=await this.sb.from('taller_datos').select('data').eq('id',1).single();
-          if(!error&&data&&data.data&&Object.keys(data.data).length){this.applyData(data.data);this.online=true;return}
-          if(!error){this.online=true;await this.save();return}
+          const {data,error}=await this.sb.from('taller_datos').select('data,updated_at').eq('id',1).single();
+          if(!error&&data){
+            this._stamp=data.updated_at||null;
+            if(data.data&&Object.keys(data.data).length){
+              this.applyData(data.data);
+              this._sync=JSON.stringify(this.snapshot());
+              this.online=true;return;
+            }
+            this.online=true;await this.save(true);return;
+          }
         }catch(e){this.online=false}
       }
       try{
@@ -2180,10 +2449,17 @@ function app(){
     async refresh(){
       if(!this.sb||this.modalAbierto())return;
       try{
-        const {data,error}=await this.sb.from('taller_datos').select('data').eq('id',1).single();
+        const {data,error}=await this.sb.from('taller_datos').select('data,updated_at').eq('id',1).single();
         if(error){this.online=false;return}
         this.online=true;
-        if(data&&data.data&&JSON.stringify(data.data)!==JSON.stringify(this.snapshot()))this.applyData(data.data);
+        if(!data)return;
+        if(this._stamp && data.updated_at===this._stamp)return;      // es nuestra propia escritura
+        if(JSON.stringify(this.snapshot())!==this._sync)return;      // tenemos cambios sin sincronizar: los resuelve save()
+        if(data.data && Object.keys(data.data).length){
+          this.applyData(data.data);
+          this._sync=JSON.stringify(this.snapshot());
+        }
+        this._stamp=data.updated_at||this._stamp;
       }catch(e){this.online=false}
     },
     async conectar(){
@@ -2213,11 +2489,14 @@ function app(){
       a.click();
       this.showToast('Respaldo descargado. Guárdelo en USB o en la nube.');
     },
-    resetDatos(){
-      if(confirm('¿Borrar todos los datos guardados y volver a los datos de demostración? Esta acción no se puede deshacer.')){
-        localStorage.removeItem('proauto_datos');
-        location.reload();
+    async resetDatos(){
+      if(!confirm('¿REINICIAR EL SISTEMA?\n\nSe borrarán TODOS los datos registrados —órdenes, caja, inventario, clientes y contraseñas— tanto en este equipo como en el servidor.\n\nEl sistema volverá a arrancar con el equipo de trabajo actual y sin movimientos.\n\nDescargue antes un respaldo si quiere conservar algo.'))return;
+      if(!confirm('Confirme por segunda vez.\n\nEsto no se puede deshacer.'))return;
+      try{localStorage.removeItem('proauto_datos')}catch(e){}
+      if(this.sb){
+        try{await this.sb.from('taller_datos').upsert({id:1,data:{},updated_at:new Date().toISOString()})}catch(e){}
       }
+      location.reload();
     },
     showToast(t){this.toast=t;setTimeout(()=>this.toast='',3400)},
     init(){
